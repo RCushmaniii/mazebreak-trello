@@ -30,7 +30,7 @@ hero_images:
   - "/images/mazebreak-trello03.jpg"
   - "/images/mazebreak-trello04.jpg"
   - "/images/mazebreak-trello05.jpg"
-demo_video_url: ""
+demo_video_url: "/video/MazeBreak__Sprint_as_Code.mp4"
 
 live_url: ""
 demo_url: ""
