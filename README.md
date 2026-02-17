@@ -2,10 +2,18 @@
 
 Trello Power-Up and project management automation for **MazeBreak** — a combat-driven Roblox maze game.
 
-This repo contains two things:
+**Live Site:** [mazebreak-trello.vercel.app](https://mazebreak-trello.vercel.app/)
+**Documentation:** [mazebreak-trello.vercel.app/docs](https://mazebreak-trello.vercel.app/docs)
+**GitHub:** [github.com/RCushmaniii/mazebreak-trello](https://github.com/RCushmaniii/mazebreak-trello)
 
-1. **Trello Power-Up Connector** — A minimal Vercel-hosted Power-Up registered with Trello for the MazeBreak workspace.
-2. **Board Setup Script (PRODUCTION++)** — An idempotent Node.js script that provisions a complete Trello workspace, board, workflow lists, labels, and fully-specified Sprint 0 cards via the Trello REST API.
+## What This Repo Contains
+
+| Component | Description |
+|---|---|
+| **Board Setup Script (PRODUCTION++)** | Idempotent Node.js script that provisions a complete Trello workspace, board, 8 workflow lists, 8 labels, and 10 fully-specified Sprint 0 cards via the Trello REST API |
+| **Marketing Landing Page** | Dark-mode single-page site with animated terminal demo, interactive board hotspots, lazy-loaded video player, and scroll animations |
+| **Documentation Site** | 8-section technical docs with sidebar navigation, scroll spy, and code blocks with copy buttons |
+| **Trello Power-Up Connector** | Minimal Vercel-hosted Power-Up registered with Trello for the MazeBreak workspace |
 
 ## Board Layout
 
@@ -13,14 +21,14 @@ The setup script creates a production-grade sprint board with full workflow trac
 
 | List | Purpose |
 |---|---|
-| 📋 Instructions | Reference cards — board overview, card lifecycle, Trello tips, dependency map |
-| 🧪 Sprint 0 – Combat Prototype | Cards waiting to be started. Work in `[S0-##]` order. |
-| 🚧 In Progress | Cards actively being worked on (max 1–2 at a time) |
-| 🔍 Review / Playtest | Code-complete cards awaiting testing/validation |
-| 🚫 Blocked | Stuck cards (comment explaining WHY required) |
-| 🔜 Sprint 1 – Core Loop | Future work. Locked until Sprint 0 exit gate passes. |
-| 📦 Backlog | Ideas and future cards not committed to any sprint |
-| ✅ Done | Finished, tested, and meets Definition of Done |
+| Instructions | Reference cards — board overview, card lifecycle, Trello tips, dependency map |
+| Sprint 0 – Combat Prototype | Cards waiting to be started. Work in `[S0-##]` order. |
+| In Progress | Cards actively being worked on (max 1–2 at a time) |
+| Review / Playtest | Code-complete cards awaiting testing/validation |
+| Blocked | Stuck cards (comment explaining WHY required) |
+| Done | Finished, tested, and meets Definition of Done |
+| Sprint 1 – Core Loop | Future work. Locked until Sprint 0 exit gate passes. |
+| Backlog | Ideas and future cards not committed to any sprint |
 
 ## Sprint 0 Cards
 
@@ -75,6 +83,24 @@ The setup script creates a production-grade sprint board with full workflow trac
 | Polish | Pink |
 | Critical | Black |
 
+## Landing Page Features
+
+The marketing site at [mazebreak-trello.vercel.app](https://mazebreak-trello.vercel.app/) includes:
+
+- **Animated terminal demo** — typing animation showing the `node trelloSetup.js` command and output
+- **Problem/Solution split** — chaos vs. structured board comparison with real screenshots
+- **Interactive board hotspots** — hover over dots on the board screenshot to see feature tooltips
+- **5 feature outcome cards** — cards, checklists, dependencies, dev notes, idempotency
+- **Animated counters** — 10 cards, 100+ checklist items, 8 lists, 9 quality gates
+- **Lazy-loaded video player** — click-to-play with poster overlay (zero network cost until interaction)
+- **Comparison table** — MazeBreak vs. Manual Setup across 7 dimensions
+- **Built for Serious Teams** — speed, discipline, repeatability pillars
+- **Share bar** — Copy Link, X/Twitter, and LinkedIn sharing in the footer
+- **Technical SEO** — JSON-LD structured data, Open Graph, Twitter Cards, canonical URL
+- **Performance optimized** — deferred font loading, image preloading, `decoding="async"`, CLS prevention
+- **Accessible** — keyboard navigation, reduced motion support, semantic HTML, ARIA labels
+- **Responsive** — mobile hamburger menu, fluid typography, adaptive grid layouts
+
 ## Idempotent Design
 
 The setup script uses find-or-create for every resource — workspace, board, lists, labels, cards, checklists, check items, and comments. Safe to re-run at any time without creating duplicates.
@@ -117,21 +143,46 @@ The setup script uses find-or-create for every resource — workspace, board, li
 
    Creates the full workspace, board, workflow lists, labels, and all Sprint 0 cards with checklists and dev notes in one shot.
 
-## Trello Power-Up
+## Deployment
 
-The Power-Up connector is hosted on Vercel and serves `public/index.html`, which initializes the Trello Power-Up SDK. Register it at the [Trello Power-Ups admin](https://trello.com/power-ups/admin) with your Vercel deployment URL.
+The site is hosted on [Vercel](https://vercel.com/). The `vercel.json` config serves from the `public/` directory with the following routes:
+
+| Route | Serves |
+|---|---|
+| `/` | `index.html` — Marketing landing page |
+| `/connector` | `connector.html` — Trello Power-Up SDK connector |
+| `/docs` | `docs.html` — Technical documentation |
+| `/*` (catch-all) | `index.html` — SPA fallback |
+
+Deploy with:
+
+```bash
+vercel --prod
+```
 
 ## Project Structure
 
 ```
 mazebreak-trello/
   public/
-    index.html        # Trello Power-Up connector
-    favicon.svg       # Project favicon
-  trelloSetup.js      # PRODUCTION++ board provisioning script (idempotent)
-  vercel.json         # Vercel routing config
-  .env                # API credentials (not committed)
-  package.json        # Node.js dependencies
+    index.html              # Marketing landing page
+    docs.html               # Technical documentation (8 sections)
+    connector.html          # Trello Power-Up SDK connector
+    favicon.svg             # MT monogram favicon (cyan accent)
+    images/
+      mazebreak-OG.jpg      # 1024x1024 Open Graph social sharing image
+      mazebreak-trello.jpg  # Board screenshot (hero/poster)
+      mazebreak-trello01.jpg - 04.jpg  # Portfolio slider images
+      mazebreak-trello-poster.jpg      # Video player poster
+    video/
+      MazeBreak__Sprint_as_Code.mp4    # Explainer video
+  trelloSetup.js            # PRODUCTION++ board provisioning script (idempotent)
+  vercel.json               # Vercel routing + output directory config
+  PORTFOLIO.md              # Portfolio metadata for CushLabs portfolio app
+  LESSONS_LEARNED.md        # Project retrospective and technical insights
+  LICENSE                   # MIT — CushLabs AI Services
+  .env                      # API credentials (not committed)
+  package.json              # Node.js dependencies (axios, dotenv)
 ```
 
 ## Tech Stack
@@ -141,8 +192,9 @@ mazebreak-trello/
 | Node.js | Runtime for setup script |
 | axios | HTTP client for Trello API |
 | dotenv | Environment variable management |
-| Vercel | Power-Up hosting |
+| Vercel | Static site hosting with SPA rewrites |
 | Trello REST API | Board/card/label/checklist provisioning |
+| Vanilla HTML/CSS/JS | Landing page, docs, and video player (zero frameworks) |
 
 ## License
 
