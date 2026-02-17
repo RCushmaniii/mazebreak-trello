@@ -29,6 +29,7 @@ hero_images:
   - "/images/mazebreak-trello02.jpg"
   - "/images/mazebreak-trello03.jpg"
   - "/images/mazebreak-trello04.jpg"
+  - "/images/mazebreak-trello05.jpg"
 demo_video_url: ""
 
 live_url: ""
@@ -58,7 +59,6 @@ tech_stack:
   - "Vercel"
 
 complexity: "Production"
-
 ---
 
 ## Overview
@@ -82,27 +82,32 @@ Manual Trello board setup creates compounding problems for sprint-driven game de
 The setup script addresses each problem with a code-first, API-driven approach:
 
 **Structured Cards with Encoded Dependencies:**
+
 - Every card title includes a dependency prefix (`[S0-00]` through `[S0-09]`)
 - Card descriptions include a "Depends On" section listing prerequisite card IDs
 - An instruction card on the board provides an ASCII dependency tree for quick reference
 - Cards must be completed in order — the structure enforces discipline without requiring a human to police it
 
 **Consistent Quality Standards:**
+
 - Every card automatically receives a 9-item Definition of Done checklist covering zero-error runs, server authority, code modularity, edge case handling, and manual testing
 - Execution checklists provide ordered implementation steps so nothing is skipped
 - Acceptance test checklists define pass/fail criteria before a card can leave Review
 
 **Developer Notes as First-Class Content:**
+
 - Each card receives a comment with architecture pitfalls and implementation guidance
 - Notes are attached as comments (not buried in descriptions) so they stay visible in the activity feed
 - Guidance is card-specific — the Zombie card warns about AI loop performance, the DamageResolver card warns about hidden side effects
 
 **Idempotent by Design:**
+
 - Every resource (workspace, board, list, label, card, checklist, check item, comment) uses a find-or-create pattern
 - Running the script twice produces the same board state — no duplicates, no errors
 - Safe to use as a baseline reset or to add missing resources after manual changes
 
 **Workflow Lists for Real Sprint Tracking:**
+
 - 8 lists model the full card lifecycle: Instructions → Sprint 0 → In Progress → Review/Playtest → Done, with Blocked for stuck cards and Backlog for future work
 - Instruction cards on the board explain how to move cards, when to update them, and keyboard shortcuts for efficient Trello use
 
@@ -118,6 +123,7 @@ The setup script addresses each problem with a code-first, API-driven approach:
 ## Results
 
 **For the Development Team:**
+
 - Sprint 0 board goes from zero to fully provisioned in under 30 seconds
 - Every card has the same quality structure — no card is a second-class citizen
 - Dependencies are visible and encoded, not tribal knowledge
@@ -125,6 +131,7 @@ The setup script addresses each problem with a code-first, API-driven approach:
 - Board can be torn down and rebuilt identically at any time
 
 **Technical Demonstration:**
+
 - REST API integration with full resource lifecycle management (create, read, update)
 - Idempotent automation design — a pattern critical for infrastructure-as-code and CI/CD pipelines
 - Data-driven architecture where the card spec is separated from the API execution logic
