@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation — MazeBreak Trello</title>
+  <meta name="description" content="Full documentation for MazeBreak Trello — Sprint Board Automation. Setup, configuration, board structure, card spec, and customization.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ══════════════════════════════════════════════════════════════
+       DESIGN SYSTEM (matches index.html)
+       ══════════════════════════════════════════════════════════════ */
+    :root {
+      --bg: #050508;
+      --bg-surface: #0a0a10;
+      --bg-card: #0d0d14;
+      --bg-elevated: #12121a;
+      --border: #1a1a2e;
+      --border-subtle: #141420;
+      --text: #e0e0e8;
+      --text-secondary: #6b7084;
+      --text-muted: #454560;
+      --accent: #00e5ff;
+      --accent-dim: #0097a7;
+      --accent-glow: rgba(0, 229, 255, 0.08);
+      --accent-glow-md: rgba(0, 229, 255, 0.15);
+      --accent-glow-strong: rgba(0, 229, 255, 0.25);
+      --danger: #ff4757;
+      --success: #00e676;
+      --warning: #ffab00;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --max-w: 1200px;
+      --sidebar-w: 260px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    ::selection {
+      background: var(--accent-glow-strong);
+      color: var(--accent);
+    }
+
+    a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: #00fff7; }
+
+    /* ══════════════════════════════════════════════════════════════
+       GRID BACKGROUND
+       ══════════════════════════════════════════════════════════════ */
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 70%);
+    }
+
+    .content-wrapper { position: relative; z-index: 1; }
+
+    /* ══════════════════════════════════════════════════════════════
+       NAVIGATION (same as index.html)
+       ══════════════════════════════════════════════════════════════ */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(5, 5, 8, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.3s;
+    }
+
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-logo .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 18px;
+      background: var(--accent);
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a.active { color: var(--accent); }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active::after { width: 100%; }
+
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 20px;
+      height: 1.5px;
+      background: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 57px;
+      left: 0;
+      right: 0;
+      background: rgba(5, 5, 8, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 24px;
+      z-index: 99;
+    }
+
+    .mobile-menu.open { display: flex; flex-direction: column; gap: 16px; }
+
+    .mobile-menu a {
+      font-size: 16px;
+      color: var(--text-secondary);
+      padding: 8px 0;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       DOCS LAYOUT
+       ══════════════════════════════════════════════════════════════ */
+    .docs-layout {
+      display: flex;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding-top: 72px;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .docs-sidebar {
+      position: sticky;
+      top: 72px;
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      height: calc(100vh - 72px);
+      overflow-y: auto;
+      padding: 32px 24px 48px 24px;
+      border-right: 1px solid var(--border-subtle);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .docs-sidebar::-webkit-scrollbar { width: 4px; }
+    .docs-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .docs-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .sidebar-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-left: 2px solid transparent;
+      transition: all 0.2s;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+    }
+
+    /* ── Mobile sidebar toggle ── */
+    .sidebar-toggle {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 90;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 24px var(--accent-glow-md);
+      transition: transform 0.2s;
+    }
+
+    .sidebar-toggle:hover { transform: scale(1.1); }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 80;
+    }
+
+    @media (max-width: 900px) {
+      .docs-sidebar {
+        position: fixed;
+        top: 57px;
+        left: -300px;
+        width: 280px;
+        min-width: 280px;
+        height: calc(100vh - 57px);
+        z-index: 85;
+        background: var(--bg-surface);
+        border-right: 1px solid var(--border);
+        transition: left 0.3s ease;
+      }
+
+      .docs-sidebar.open { left: 0; }
+      .sidebar-overlay.open { display: block; }
+      .sidebar-toggle { display: flex; }
+
+      .docs-content {
+        padding-left: 24px !important;
+      }
+    }
+
+    /* ── Main content ── */
+    .docs-content {
+      flex: 1;
+      min-width: 0;
+      padding: 40px 48px 120px 48px;
+    }
+
+    @media (max-width: 600px) {
+      .docs-content { padding: 32px 20px 100px 20px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       DOCS HEADER
+       ══════════════════════════════════════════════════════════════ */
+    .docs-header {
+      margin-bottom: 64px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .docs-header .section-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+    }
+
+    .docs-header h1 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .docs-header h1 .accent { color: var(--accent); }
+
+    .docs-header .lead {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 640px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       DOCS TYPOGRAPHY
+       ══════════════════════════════════════════════════════════════ */
+    .doc-section {
+      margin-bottom: 72px;
+      scroll-margin-top: 90px;
+    }
+
+    .doc-section h2 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .doc-section h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 40px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .doc-section h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+      color: var(--accent);
+      font-family: var(--font-mono);
+    }
+
+    .doc-section p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+
+    .doc-section strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .doc-section ul, .doc-section ol {
+      margin-bottom: 20px;
+      padding-left: 24px;
+    }
+
+    .doc-section li {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+
+    .doc-section li strong {
+      color: var(--text);
+    }
+
+    .doc-section li code {
+      background: var(--bg-elevated);
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Inline code */
+    .doc-section p code,
+    .doc-section td code,
+    .doc-section h3 code {
+      background: var(--bg-elevated);
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       CODE BLOCKS
+       ══════════════════════════════════════════════════════════════ */
+    .code-block {
+      position: relative;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .code-block-copy {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+
+    .code-block-copy:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .code-block-copy.copied {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 20px;
+      overflow-x: auto;
+      background: var(--bg-surface);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .code-block pre::-webkit-scrollbar { height: 4px; }
+    .code-block pre::-webkit-scrollbar-track { background: transparent; }
+    .code-block pre::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Syntax colors */
+    .code-block .comment { color: var(--text-muted); }
+    .code-block .keyword { color: #c792ea; }
+    .code-block .string { color: #c3e88d; }
+    .code-block .number { color: #f78c6c; }
+    .code-block .function { color: #82aaff; }
+    .code-block .variable { color: #f07178; }
+    .code-block .operator { color: #89ddff; }
+    .code-block .property { color: #ffcb6b; }
+    .code-block .prompt { color: var(--accent); }
+    .code-block .output { color: var(--success); }
+    .code-block .dimmed { color: var(--text-muted); }
+
+    /* ══════════════════════════════════════════════════════════════
+       TABLES
+       ══════════════════════════════════════════════════════════════ */
+    .docs-table-wrap {
+      overflow-x: auto;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    .docs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .docs-table thead th {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 12px 16px;
+      text-align: left;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .docs-table tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .docs-table tbody tr:last-child td { border-bottom: none; }
+
+    .docs-table tbody tr {
+      transition: background 0.2s;
+    }
+
+    .docs-table tbody tr:hover {
+      background: var(--bg-surface);
+    }
+
+    .docs-table td code {
+      background: var(--bg-elevated);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       CALLOUT BOXES
+       ══════════════════════════════════════════════════════════════ */
+    .callout {
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-glow);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .callout p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+
+    .callout p:not(:last-child) {
+      margin-bottom: 8px;
+    }
+
+    .callout.warning {
+      border-left-color: var(--warning);
+      background: rgba(255, 171, 0, 0.06);
+    }
+
+    .callout.warning p { color: var(--text); }
+
+    .callout.danger {
+      border-left-color: var(--danger);
+      background: rgba(255, 71, 87, 0.06);
+    }
+
+    .callout.danger p { color: var(--text); }
+
+    .callout .callout-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .callout .callout-label.info-label { color: var(--accent); }
+    .callout .callout-label.warn-label { color: var(--warning); }
+    .callout .callout-label.danger-label { color: var(--danger); }
+
+    /* ══════════════════════════════════════════════════════════════
+       DEPENDENCY DIAGRAM
+       ══════════════════════════════════════════════════════════════ */
+    .dep-diagram {
+      padding: 24px;
+      margin-bottom: 24px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .dep-diagram pre {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      white-space: pre;
+    }
+
+    .dep-diagram .node { color: var(--accent); font-weight: 700; }
+    .dep-diagram .arrow { color: var(--text-muted); }
+    .dep-diagram .label { color: var(--text-secondary); }
+
+    /* ══════════════════════════════════════════════════════════════
+       LABEL BADGES
+       ══════════════════════════════════════════════════════════════ */
+    .label-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid;
+    }
+
+    .label-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .label-purple { color: #c792ea; border-color: rgba(199, 146, 234, 0.3); background: rgba(199, 146, 234, 0.08); }
+    .label-purple .dot { background: #c792ea; }
+    .label-blue { color: #82aaff; border-color: rgba(130, 170, 255, 0.3); background: rgba(130, 170, 255, 0.08); }
+    .label-blue .dot { background: #82aaff; }
+    .label-red { color: #f07178; border-color: rgba(240, 113, 120, 0.3); background: rgba(240, 113, 120, 0.08); }
+    .label-red .dot { background: #f07178; }
+    .label-orange { color: #f78c6c; border-color: rgba(247, 140, 108, 0.3); background: rgba(247, 140, 108, 0.08); }
+    .label-orange .dot { background: #f78c6c; }
+    .label-green { color: #c3e88d; border-color: rgba(195, 232, 141, 0.3); background: rgba(195, 232, 141, 0.08); }
+    .label-green .dot { background: #c3e88d; }
+    .label-yellow { color: #ffcb6b; border-color: rgba(255, 203, 107, 0.3); background: rgba(255, 203, 107, 0.08); }
+    .label-yellow .dot { background: #ffcb6b; }
+    .label-pink { color: #ff9cac; border-color: rgba(255, 156, 172, 0.3); background: rgba(255, 156, 172, 0.08); }
+    .label-pink .dot { background: #ff9cac; }
+    .label-black { color: var(--text); border-color: rgba(224, 224, 232, 0.3); background: rgba(224, 224, 232, 0.08); }
+    .label-black .dot { background: var(--text); }
+
+    .labels-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FOOTER
+       ══════════════════════════════════════════════════════════════ */
+    .footer {
+      padding: 48px 24px;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+    }
+
+    .footer p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .footer a { color: var(--text-secondary); }
+    .footer a:hover { color: var(--accent); }
+
+    /* ══════════════════════════════════════════════════════════════
+       REDUCED MOTION
+       ══════════════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Grid Background -->
+  <div class="grid-bg" aria-hidden="true"></div>
+
+  <div class="content-wrapper">
+
+    <!-- ═══ NAVIGATION ═══ -->
+    <nav class="nav" role="navigation">
+      <a href="/" class="nav-logo" style="text-decoration:none;">
+        MazeBreak<span class="cursor"></span>
+      </a>
+      <div class="nav-links">
+        <a href="/#features">Features</a>
+        <a href="/#demo">Demo</a>
+        <a href="/docs" class="active">Docs</a>
+        <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="nav-hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="/#features" onclick="toggleMenu()">Features</a>
+      <a href="/#demo" onclick="toggleMenu()">Demo</a>
+      <a href="/docs" onclick="toggleMenu()">Docs</a>
+      <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener" onclick="toggleMenu()">GitHub</a>
+    </div>
+
+    <!-- ═══ DOCS LAYOUT ═══ -->
+    <div class="docs-layout">
+
+      <!-- Sidebar -->
+      <aside class="docs-sidebar" id="docsSidebar">
+        <div class="sidebar-title">Documentation</div>
+        <ul class="sidebar-nav" id="sidebarNav">
+          <li><a href="#getting-started">Getting Started</a></li>
+          <li><a href="#configuration">Configuration</a></li>
+          <li><a href="#running-the-script">Running the Script</a></li>
+          <li><a href="#board-structure">Board Structure</a></li>
+          <li><a href="#card-specification">Card Specification</a></li>
+          <li><a href="#idempotency">Idempotency</a></li>
+          <li><a href="#trello-power-up">Trello Power-Up</a></li>
+          <li><a href="#customization">Customization</a></li>
+        </ul>
+      </aside>
+
+      <!-- Sidebar overlay for mobile -->
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+      <!-- Mobile sidebar toggle -->
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        &#9776;
+      </button>
+
+      <!-- Main Content -->
+      <main class="docs-content">
+
+        <!-- Header -->
+        <div class="docs-header">
+          <p class="section-label">// documentation</p>
+          <h1>MazeBreak Trello<br><span class="accent">Sprint Board Automation</span></h1>
+          <p class="lead">One script. One command. A production-grade Trello sprint board with dependency-encoded cards, execution checklists, acceptance tests, and a Definition of Done on every card. This is the complete reference.</p>
+        </div>
+
+        <!-- ═══ 1. GETTING STARTED ═══ -->
+        <section class="doc-section" id="getting-started">
+          <h2>Getting Started</h2>
+
+          <h3>Prerequisites</h3>
+          <ul>
+            <li><strong>Node.js 18+</strong> &mdash; required for modern JavaScript features. Verify with <code>node --version</code>.</li>
+            <li><strong>npm</strong> &mdash; ships with Node.js. Used to install dependencies.</li>
+            <li><strong>Trello Account</strong> &mdash; with access to create boards and workspaces.</li>
+            <li><strong>Trello API Key &amp; Token</strong> &mdash; obtained from the Trello Power-Up admin portal (see <a href="#configuration">Configuration</a> below).</li>
+          </ul>
+
+          <h3>Installation</h3>
+          <p>Clone the repository and install dependencies.</p>
+
+          <div class="code-block">
+            <div class="code-block-header">
+              <span>bash</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="prompt">$</span> git clone https://github.com/RCushmaniii/mazebreak-trello.git
+<span class="prompt">$</span> <span class="keyword">cd</span> mazebreak-trello
+<span class="prompt">$</span> npm install</pre>
+          </div>
+
+          <p>This installs two dependencies:</p>
+          <ul>
+            <li><code>axios</code> &mdash; HTTP client for Trello API calls</li>
+            <li><code>dotenv</code> &mdash; loads environment variables from <code>.env</code></li>
+          </ul>
+
+          <h3>Create Your <code>.env</code> File</h3>
+          <p>Create a <code>.env</code> file in the project root with your Trello credentials.</p>
+
+          <div class="code-block">
+            <div class="code-block-header">
+              <span>.env</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre>TRELLO_API_KEY=<span class="string">your_api_key_here</span>
+TRELLO_SECRET_KEY=<span class="string">your_secret_key_here</span>
+TRELLO_TOKEN=<span class="string">your_token_here</span></pre>
+          </div>
+
+          <div class="callout danger">
+            <span class="callout-label danger-label">Security</span>
+            <p>Never commit your <code>.env</code> file to version control. It contains secrets that grant full access to your Trello account. Add <code>.env</code> to your <code>.gitignore</code>.</p>
+          </div>
+        </section>
+
+        <!-- ═══ 2. CONFIGURATION ═══ -->
+        <section class="doc-section" id="configuration">
+          <h2>Configuration</h2>
+
+          <p>The script requires three environment variables to authenticate with the Trello API. All three are loaded from the <code>.env</code> file at the project root.</p>
+
+          <div class="docs-table-wrap">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Description</th>
+                  <th>Required</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>TRELLO_API_KEY</code></td>
+                  <td>Your Trello Power-Up API key. Used to authenticate every API request.</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td><code>TRELLO_SECRET_KEY</code></td>
+                  <td>Your Trello API secret (OAuth secret). Used for Power-Up registration.</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td><code>TRELLO_TOKEN</code></td>
+                  <td>A user-scoped token granting read/write access to your boards and workspaces.</td>
+                  <td>Yes</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>How to Get Your Credentials</h3>
+          <ol>
+            <li>Go to <a href="https://trello.com/power-ups/admin" target="_blank" rel="noopener">https://trello.com/power-ups/admin</a></li>
+            <li>Click <strong>"New"</strong> to create a new Power-Up integration (or select an existing one).</li>
+            <li>Fill in basic details:
+              <ul>
+                <li><strong>Name:</strong> MazeBreak (or any name you prefer)</li>
+                <li><strong>Workspace:</strong> Select the workspace you want to use</li>
+                <li><strong>Iframe connector URL:</strong> Your deployment URL + <code>/connector</code> (e.g., <code>https://your-domain.com/connector</code>)</li>
+              </ul>
+            </li>
+            <li>After creating, you will see your <strong>API Key</strong> and <strong>Secret</strong> on the Power-Up details page.</li>
+            <li>To generate a <strong>Token</strong>, click the link on the Power-Up page that says "Token" or navigate to:
+              <div class="code-block" style="margin-top:12px;">
+                <div class="code-block-header">
+                  <span>url</span>
+                  <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&key=<span class="variable">YOUR_API_KEY</span></pre>
+              </div>
+            </li>
+            <li>Authorize the app when prompted. Copy the token displayed on the screen.</li>
+            <li>Paste all three values into your <code>.env</code> file.</li>
+          </ol>
+
+          <div class="callout">
+            <span class="callout-label info-label">Tip</span>
+            <p>Use <code>expiration=never</code> for long-lived automation tokens. If you prefer short-lived tokens, replace <code>never</code> with a duration like <code>1day</code> or <code>30days</code>.</p>
+          </div>
+        </section>
+
+        <!-- ═══ 3. RUNNING THE SCRIPT ═══ -->
+        <section class="doc-section" id="running-the-script">
+          <h2>Running the Script</h2>
+
+          <p>With your <code>.env</code> configured, run the board builder.</p>
+
+          <div class="code-block">
+            <div class="code-block-header">
+              <span>bash</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="prompt">$</span> node trelloSetup.js</pre>
+          </div>
+
+          <h3>What It Creates</h3>
+          <p>The script provisions the following resources in order via the Trello API:</p>
+          <ol>
+            <li><strong>Workspace</strong> &mdash; "MazeBreak Development"</li>
+            <li><strong>Board</strong> &mdash; "MazeBreak &ndash; Core Development" inside that workspace</li>
+            <li><strong>Lists</strong> &mdash; 4 workflow columns for card progression</li>
+            <li><strong>Labels</strong> &mdash; 8 color-coded labels for categorization</li>
+            <li><strong>Cards</strong> &mdash; 10 fully-specified Sprint 0 cards with dependency prefixes</li>
+            <li><strong>Checklists</strong> &mdash; Execution checklists, acceptance tests, and Definition of Done on every card</li>
+            <li><strong>Comments</strong> &mdash; Dev Notes comment on every card with architecture guidance</li>
+          </ol>
+
+          <h3>Expected Output</h3>
+          <div class="code-block">
+            <div class="code-block-header">
+              <span>terminal output</span>
+            </div>
+            <pre><span class="output">Starting MazeBreak Sprint 0 Trello build (idempotent)...</span>
+
+<span class="output">&#10003; Workspace Created: MazeBreak Development</span>
+<span class="output">&#10003; Board Created: MazeBreak &#8211; Core Development</span>
+<span class="output">&#10003; List Created: &#129514; Sprint 0 &#8211; Combat Prototype</span>
+<span class="output">&#10003; List Created: &#128284; Sprint 1 &#8211; Core Loop</span>
+<span class="output">&#10003; List Created: &#128230; Backlog</span>
+<span class="output">&#10003; List Created: &#9989; Done</span>
+<span class="output">&#10003; 8 Labels Created</span>
+
+<span class="output">&#10003; [S0-00] Gate Rules &#8212; 2 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-01] Foundation Setup &#8212; 2 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-02] InputController &#8212; 3 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-03] CombatManager &#8212; 3 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-04] DamageResolver &#8212; 3 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-05] Zombie Enemy &#8212; 3 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-06] Health System &#8212; 3 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-07] Basic HUD &#8212; 3 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-08] Feel Tuning &#8212; 3 checklists, dev notes, DoD</span>
+<span class="output">&#10003; [S0-09] Exit Gate &#8212; 2 checklists, dev notes, DoD</span>
+
+<span class="output">&#10003; Sprint 0 PRODUCTION++ complete.</span>
+<span class="dimmed">   Safe to re-run (idempotent).</span></pre>
+          </div>
+
+          <h3>Re-Running</h3>
+          <p>The script is fully <strong>idempotent</strong>. If you run it again, it will detect all existing resources and skip creation. You will see recycling indicators instead of creation confirmations. See <a href="#idempotency">Idempotency</a> for details.</p>
+        </section>
+
+        <!-- ═══ 4. BOARD STRUCTURE ═══ -->
+        <section class="doc-section" id="board-structure">
+          <h2>Board Structure</h2>
+
+          <h3>Lists</h3>
+          <p>The script creates 4 workflow lists that represent the card lifecycle.</p>
+
+          <div class="docs-table-wrap">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>List</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Sprint 0 &ndash; Combat Prototype</td>
+                  <td>Active sprint work. All 10 Sprint 0 cards land here. Cards are worked in dependency order [S0-00] through [S0-09].</td>
+                </tr>
+                <tr>
+                  <td>Sprint 1 &ndash; Core Loop</td>
+                  <td>Placeholder for next sprint. No cards created here initially. Work moves here only after Sprint 0 Exit Gate passes.</td>
+                </tr>
+                <tr>
+                  <td>Backlog</td>
+                  <td>Ideas, future work, and deferred items. Not prioritized yet.</td>
+                </tr>
+                <tr>
+                  <td>Done</td>
+                  <td>Completed and verified work. Cards move here after all checklists and the Definition of Done are satisfied.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Labels</h3>
+          <p>8 color-coded labels categorize cards by domain. Cards can have multiple labels.</p>
+
+          <div class="docs-table-wrap">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Label</th>
+                  <th>Color</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span></td>
+                  <td>Black</td>
+                  <td>Must-complete for sprint. Every Sprint 0 card carries this label.</td>
+                </tr>
+                <tr>
+                  <td><span class="label-badge label-purple"><span class="dot"></span>Architecture</span></td>
+                  <td>Purple</td>
+                  <td>Structural decisions, folder organization, code patterns.</td>
+                </tr>
+                <tr>
+                  <td><span class="label-badge label-red"><span class="dot"></span>Server</span></td>
+                  <td>Red</td>
+                  <td>Server-side logic (ServerScriptService). Authority and validation.</td>
+                </tr>
+                <tr>
+                  <td><span class="label-badge label-blue"><span class="dot"></span>Client</span></td>
+                  <td>Blue</td>
+                  <td>Client-side logic (StarterPlayerScripts). Input, UI, feedback.</td>
+                </tr>
+                <tr>
+                  <td><span class="label-badge label-orange"><span class="dot"></span>Combat</span></td>
+                  <td>Orange</td>
+                  <td>Combat system mechanics: attacks, hit detection, damage.</td>
+                </tr>
+                <tr>
+                  <td><span class="label-badge label-green"><span class="dot"></span>Enemy</span></td>
+                  <td>Green</td>
+                  <td>Enemy AI, state machines, behavior patterns.</td>
+                </tr>
+                <tr>
+                  <td><span class="label-badge label-yellow"><span class="dot"></span>UI</span></td>
+                  <td>Yellow</td>
+                  <td>User interface elements: HUD, health bars, feedback displays.</td>
+                </tr>
+                <tr>
+                  <td><span class="label-badge label-pink"><span class="dot"></span>Polish</span></td>
+                  <td>Pink</td>
+                  <td>Feel tuning, timing adjustments, iteration work.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Cards &mdash; The Sprint 0 Dependency Chain</h3>
+          <p>10 cards form a strict dependency chain. Each card's title carries a <code>[S0-##]</code> prefix that encodes its position. You must complete earlier cards before starting later ones.</p>
+
+          <div class="dep-diagram">
+            <pre><span class="node">[S0-00]</span> <span class="label">Gate Rules</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-01]</span> <span class="label">Foundation Setup</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-02]</span> <span class="label">InputController</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-03]</span> <span class="label">CombatManager</span> <span class="arrow">&larr;</span> <span class="label">depends on S0-01 + S0-02</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-04]</span> <span class="label">DamageResolver</span> <span class="arrow">&larr;</span> <span class="label">depends on S0-01 + S0-03</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-05]</span> <span class="label">Zombie Enemy</span> <span class="arrow">&larr;</span> <span class="label">depends on S0-03 + S0-04</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-06]</span> <span class="label">Health System</span> <span class="arrow">&larr;</span> <span class="label">depends on S0-04 + S0-05</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-07]</span> <span class="label">Basic HUD</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-08]</span> <span class="label">Feel Tuning</span>
+  <span class="arrow">|</span>
+  <span class="arrow">v</span>
+<span class="node">[S0-09]</span> <span class="label">Exit Gate</span> <span class="arrow">&mdash;</span> <span class="label">Ship / No-Ship decision</span></pre>
+          </div>
+
+          <div class="docs-table-wrap">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Card Title</th>
+                  <th>Depends On</th>
+                  <th>Labels</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>S0-00</code></td>
+                  <td>SPRINT 0 &ndash; Gate Rules (Read First)</td>
+                  <td>None (starting point)</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-purple"><span class="dot"></span>Architecture</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-01</code></td>
+                  <td>Project Foundation Setup</td>
+                  <td>S0-00</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-purple"><span class="dot"></span>Architecture</span> <span class="label-badge label-red"><span class="dot"></span>Server</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-02</code></td>
+                  <td>Remotes + InputController (Client)</td>
+                  <td>S0-01</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-blue"><span class="dot"></span>Client</span> <span class="label-badge label-orange"><span class="dot"></span>Combat</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-03</code></td>
+                  <td>CombatManager (Server Authority Core)</td>
+                  <td>S0-01, S0-02</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-red"><span class="dot"></span>Server</span> <span class="label-badge label-orange"><span class="dot"></span>Combat</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-04</code></td>
+                  <td>DamageResolver (Single Source of Truth)</td>
+                  <td>S0-01, S0-03</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-red"><span class="dot"></span>Server</span> <span class="label-badge label-purple"><span class="dot"></span>Architecture</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-05</code></td>
+                  <td>Enemy: Zombie (Tier 1 State Machine)</td>
+                  <td>S0-03, S0-04</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-red"><span class="dot"></span>Server</span> <span class="label-badge label-green"><span class="dot"></span>Enemy</span> <span class="label-badge label-orange"><span class="dot"></span>Combat</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-06</code></td>
+                  <td>Health System + Damage Feedback</td>
+                  <td>S0-04, S0-05</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-red"><span class="dot"></span>Server</span> <span class="label-badge label-yellow"><span class="dot"></span>UI</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-07</code></td>
+                  <td>Basic HUD (Server-Truth Health Only)</td>
+                  <td>S0-06</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-blue"><span class="dot"></span>Client</span> <span class="label-badge label-yellow"><span class="dot"></span>UI</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-08</code></td>
+                  <td>Feel Tuning Pass (20+ Fights Minimum)</td>
+                  <td>S0-07</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-pink"><span class="dot"></span>Polish</span> <span class="label-badge label-orange"><span class="dot"></span>Combat</span></td>
+                </tr>
+                <tr>
+                  <td><code>S0-09</code></td>
+                  <td>SPRINT 0 EXIT CHECKLIST &ndash; Ship/No-Ship Gate</td>
+                  <td>S0-08</td>
+                  <td><span class="label-badge label-black"><span class="dot"></span>Critical</span> <span class="label-badge label-purple"><span class="dot"></span>Architecture</span> <span class="label-badge label-orange"><span class="dot"></span>Combat</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ═══ 5. CARD SPECIFICATION ═══ -->
+        <section class="doc-section" id="card-specification">
+          <h2>Card Specification</h2>
+
+          <p>Every card created by the script is a complete work specification. No card is a stub or placeholder. Here is what each card includes.</p>
+
+          <h3>Title with Dependency Prefix</h3>
+          <p>Every card title follows the pattern <code>[S0-##] CARD TITLE</code>. The prefix encodes the card's position in the dependency chain, making sprint order visible at a glance in the Trello board view.</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>example</span></div>
+            <pre>[S0-03] CARD 3 — CombatManager (Server Authority Core)</pre>
+          </div>
+
+          <h3>Description with Dependencies</h3>
+          <p>Every card description contains:</p>
+          <ul>
+            <li><strong>Objective</strong> &mdash; what this card achieves</li>
+            <li><strong>Depends On</strong> &mdash; which cards must be finished first</li>
+            <li><strong>Technical specification</strong> &mdash; files to create, APIs to implement, folder structures</li>
+            <li><strong>Completion Criteria</strong> &mdash; how to know when this card is done</li>
+            <li><strong>Dependency Notes</strong> &mdash; appended automatically at the bottom of every card description</li>
+          </ul>
+
+          <h3>Execution Checklist</h3>
+          <p>An ordered list of implementation steps. Work through these top-to-bottom. Each item is a concrete action, not a vague goal.</p>
+          <div class="code-block">
+            <div class="code-block-header"><span>example: card 2 execution checklist</span></div>
+            <pre><span class="comment">Execution Checklist (Ordered)</span>
+<span class="output">[ ]</span> Create AttackRequest RemoteEvent in ReplicatedStorage/Remotes
+<span class="output">[ ]</span> Create InputController.client.lua in StarterPlayerScripts
+<span class="output">[ ]</span> Bind attack input (UIS or CAS) and fire AttackRequest:FireServer()
+<span class="output">[ ]</span> Add local throttle to prevent spam FireServer (visual only)
+<span class="output">[ ]</span> Test: clicks fire instantly with no console errors</pre>
+          </div>
+
+          <h3>Acceptance Tests</h3>
+          <p>Cards 2 through 8 include an explicit acceptance test checklist. These are the verification criteria that must pass before the card can move to Done.</p>
+          <div class="code-block">
+            <div class="code-block-header"><span>example: card 2 acceptance tests</span></div>
+            <pre><span class="comment">Acceptance Tests</span>
+<span class="output">[ ]</span> Spam click does NOT freeze client
+<span class="output">[ ]</span> Remote fires instantly on input
+<span class="output">[ ]</span> No client damage calculations exist</pre>
+          </div>
+
+          <h3>Definition of Done (Global)</h3>
+          <p>A 9-item quality checklist attached to <strong>every single card</strong>. This is the universal quality bar. No card is "done" until all 9 items are checked.</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>Definition of Done (applies to all 10 cards)</span></div>
+            <pre><span class="output">[ ]</span> Runs in Studio with zero errors in Output
+<span class="output">[ ]</span> Server-authoritative rules not violated (no client damage outcomes)
+<span class="output">[ ]</span> No gameplay logic placed in Workspace
+<span class="output">[ ]</span> Code is modular (Managers/Systems), no spaghetti in random scripts
+<span class="output">[ ]</span> No magic numbers: key constants centralized + named
+<span class="output">[ ]</span> Basic logging added where it helps debugging (not spammy)
+<span class="output">[ ]</span> Edge cases handled (nil targets, dead targets, missing humanoid)
+<span class="output">[ ]</span> Performance sanity: no runaway loops / no heavy per-frame work
+<span class="output">[ ]</span> Quick manual test performed and recorded in checklist notes</pre>
+          </div>
+
+          <h3>Dev Notes (Comment)</h3>
+          <p>Every card receives a comment with architecture guidance and common pitfalls. These are attached as Trello card comments, not part of the checklist, so they serve as persistent reference without cluttering the task items.</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>example: card 3 dev notes</span></div>
+            <pre><span class="comment">DEV NOTES (Architecture &amp; Pitfalls)</span>
+<span class="string">- Keep CombatManager as an orchestrator: validate + route to systems.</span>
+<span class="string">- Don't subtract health in CombatManager. Always go through DamageResolver.</span>
+<span class="string">- If you add effects, don't hardcode them here — emit events/hooks later.</span></pre>
+          </div>
+
+          <h3>Dependency Notes</h3>
+          <p>Appended to the bottom of every card description. Lists which cards must be finished before this one can start.</p>
+          <div class="code-block">
+            <div class="code-block-header"><span>example: card 3 dependency notes</span></div>
+            <pre><span class="comment">----</span>
+<span class="comment">## Dependency Notes</span>
+<span class="string">- Finish: S0-01 before this</span>
+<span class="string">- Finish: S0-02 before this</span></pre>
+          </div>
+        </section>
+
+        <!-- ═══ 6. IDEMPOTENCY ═══ -->
+        <section class="doc-section" id="idempotency">
+          <h2>Idempotency</h2>
+
+          <p>The script is designed to be run multiple times without creating duplicates or corrupting existing data. This is the core engineering principle behind MazeBreak Trello.</p>
+
+          <h3>How It Works</h3>
+          <p>Every resource creation uses a <strong>find-or-create</strong> pattern:</p>
+          <ol>
+            <li><strong>Query</strong> &mdash; before creating any resource, the script fetches the list of existing resources of that type (workspaces, boards, lists, labels, cards, checklists, checklist items, comments).</li>
+            <li><strong>Match</strong> &mdash; it searches the existing resources for a match by name (and color, for labels).</li>
+            <li><strong>Skip or Create</strong> &mdash; if a match is found, the existing resource ID is returned and creation is skipped. If no match is found, the resource is created fresh.</li>
+          </ol>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>trelloSetup.js &mdash; find-or-create pattern</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="keyword">async function</span> <span class="function">findOrCreateCard</span>(listId, name, desc, idLabels = []) {
+  <span class="comment">// 1. Query existing cards in this list</span>
+  <span class="keyword">const</span> res = <span class="keyword">await</span> api.<span class="function">get</span>(<span class="string">`/lists/${listId}/cards`</span>, { params: <span class="function">params</span>() });
+
+  <span class="comment">// 2. Match by name</span>
+  <span class="keyword">const</span> existing = res.data.<span class="function">find</span>((c) <span class="operator">=></span> c.name <span class="operator">===</span> name);
+
+  <span class="comment">// 3. Skip if found</span>
+  <span class="keyword">if</span> (existing) {
+    console.<span class="function">log</span>(<span class="string">"&#9851;  Card exists:"</span>, name);
+    <span class="keyword">return</span> existing.id;
+  }
+
+  <span class="comment">// 4. Create if not found</span>
+  <span class="keyword">const</span> created = <span class="keyword">await</span> api.<span class="function">post</span>(<span class="string">"/cards"</span>, <span class="keyword">null</span>, {
+    params: <span class="function">params</span>({ idList: listId, name, desc, idLabels: idLabels.<span class="function">join</span>(<span class="string">","</span>) }),
+  });
+  console.<span class="function">log</span>(<span class="string">"&#10003; Card Created:"</span>, name);
+  <span class="keyword">return</span> created.data.id;
+}</pre>
+          </div>
+
+          <h3>What This Means in Practice</h3>
+          <ul>
+            <li><strong>Safe to re-run</strong> &mdash; run <code>node trelloSetup.js</code> any time. Nothing breaks.</li>
+            <li><strong>No duplicates</strong> &mdash; you will never get two copies of the same card, list, or label.</li>
+            <li><strong>Recovers from partial runs</strong> &mdash; if the script fails mid-way (network error, rate limit), re-run it. It picks up where it left off.</li>
+            <li><strong>Manual edits preserved</strong> &mdash; if you manually add notes, move cards, or check items, the script does not overwrite them. It only checks for existence by name.</li>
+          </ul>
+
+          <div class="callout warning">
+            <span class="callout-label warn-label">Caveat</span>
+            <p>If you <strong>rename</strong> a card, list, or label in Trello manually, the script will no longer find it by name and will create a new one on the next run. Keep names consistent if you want to preserve idempotency.</p>
+          </div>
+
+          <h3>Idempotent Resources</h3>
+          <div class="docs-table-wrap">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Resource</th>
+                  <th>Match Key</th>
+                  <th>Scope</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Workspace</td><td><code>displayName</code></td><td>All user workspaces</td></tr>
+                <tr><td>Board</td><td><code>name</code></td><td>Boards in workspace</td></tr>
+                <tr><td>List</td><td><code>name</code></td><td>Lists on board</td></tr>
+                <tr><td>Label</td><td><code>name</code> + <code>color</code></td><td>Labels on board</td></tr>
+                <tr><td>Card</td><td><code>name</code></td><td>Cards in list</td></tr>
+                <tr><td>Checklist</td><td><code>name</code></td><td>Checklists on card</td></tr>
+                <tr><td>Checklist Item</td><td><code>name</code></td><td>Items in checklist</td></tr>
+                <tr><td>Comment</td><td>First 40 chars of text</td><td>Comments on card</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ═══ 7. TRELLO POWER-UP ═══ -->
+        <section class="doc-section" id="trello-power-up">
+          <h2>Trello Power-Up</h2>
+
+          <p>MazeBreak Trello includes a minimal Power-Up connector that allows you to register the project as a Trello Power-Up. This enables API key registration and integration with the Trello Power-Up ecosystem.</p>
+
+          <h3>The Connector</h3>
+          <p>The connector is a static HTML file served at <code>/connector</code>. It loads the Trello Power-Up client library and calls <code>TrelloPowerUp.initialize({})</code> with an empty capability set.</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>public/connector.html</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="operator">&lt;!</span><span class="keyword">DOCTYPE</span> <span class="variable">html</span><span class="operator">&gt;</span>
+<span class="operator">&lt;</span><span class="keyword">html</span> <span class="property">lang</span><span class="operator">=</span><span class="string">"en"</span><span class="operator">&gt;</span>
+<span class="operator">&lt;</span><span class="keyword">head</span><span class="operator">&gt;</span>
+  <span class="operator">&lt;</span><span class="keyword">meta</span> <span class="property">charset</span><span class="operator">=</span><span class="string">"UTF-8"</span><span class="operator">&gt;</span>
+  <span class="operator">&lt;</span><span class="keyword">meta</span> <span class="property">name</span><span class="operator">=</span><span class="string">"viewport"</span> <span class="property">content</span><span class="operator">=</span><span class="string">"width=device-width, initial-scale=1.0"</span><span class="operator">&gt;</span>
+  <span class="operator">&lt;</span><span class="keyword">title</span><span class="operator">&gt;</span>MazeBreak — Trello Power-Up Connector<span class="operator">&lt;/</span><span class="keyword">title</span><span class="operator">&gt;</span>
+<span class="operator">&lt;/</span><span class="keyword">head</span><span class="operator">&gt;</span>
+<span class="operator">&lt;</span><span class="keyword">body</span><span class="operator">&gt;</span>
+  <span class="operator">&lt;</span><span class="keyword">script</span> <span class="property">src</span><span class="operator">=</span><span class="string">"https://p.trellocdn.com/power-up.min.js"</span><span class="operator">&gt;&lt;/</span><span class="keyword">script</span><span class="operator">&gt;</span>
+  <span class="operator">&lt;</span><span class="keyword">script</span><span class="operator">&gt;</span>
+    TrelloPowerUp.<span class="function">initialize</span>({});
+  <span class="operator">&lt;/</span><span class="keyword">script</span><span class="operator">&gt;</span>
+<span class="operator">&lt;/</span><span class="keyword">body</span><span class="operator">&gt;</span>
+<span class="operator">&lt;/</span><span class="keyword">html</span><span class="operator">&gt;</span></pre>
+          </div>
+
+          <h3>How to Register the Power-Up</h3>
+          <ol>
+            <li>Deploy MazeBreak Trello to a public URL (e.g., via Vercel, Netlify, Railway, or any static hosting).</li>
+            <li>Go to <a href="https://trello.com/power-ups/admin" target="_blank" rel="noopener">https://trello.com/power-ups/admin</a>.</li>
+            <li>Click <strong>"New"</strong> to register a new Power-Up.</li>
+            <li>Set the <strong>Iframe connector URL</strong> to your deployed URL plus <code>/connector</code>:
+              <div class="code-block" style="margin-top:12px;">
+                <div class="code-block-header"><span>example</span></div>
+                <pre>https://your-domain.com/connector</pre>
+              </div>
+            </li>
+            <li>Save. Your API key and secret will be displayed on the Power-Up admin page.</li>
+            <li>Copy those values into your <code>.env</code> file as <code>TRELLO_API_KEY</code> and <code>TRELLO_SECRET_KEY</code>.</li>
+            <li>Generate a token (see <a href="#configuration">Configuration</a>) and add it as <code>TRELLO_TOKEN</code>.</li>
+          </ol>
+
+          <div class="callout">
+            <span class="callout-label info-label">Note</span>
+            <p>The current connector is minimal &mdash; it registers the Power-Up with an empty capability set. You can extend it later to add board buttons, card badges, card detail sections, or other Power-Up capabilities as needed.</p>
+          </div>
+        </section>
+
+        <!-- ═══ 8. CUSTOMIZATION ═══ -->
+        <section class="doc-section" id="customization">
+          <h2>Customization</h2>
+
+          <p>The entire board specification lives in a single file: <code>trelloSetup.js</code>. All card content, checklists, labels, and structure are defined in plain JavaScript arrays and objects. No external config files, no database. Change the code, re-run the script.</p>
+
+          <h3>Adding a New Card</h3>
+          <p>Add a new entry to the array returned by the <code>sprint0Spec()</code> function. Follow the existing pattern:</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>trelloSetup.js &mdash; adding a new card</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="comment">// 1. Add a new ID constant in CARD_IDS</span>
+<span class="keyword">const</span> CARD_IDS = {
+  <span class="comment">// ...existing IDs...</span>
+  <span class="property">C10</span>: <span class="string">"S0-10"</span>,  <span class="comment">// new card</span>
+};
+
+<span class="comment">// 2. Add the card spec inside sprint0Spec()</span>
+{
+  <span class="property">id</span>: CARD_IDS.<span class="property">C10</span>,
+  <span class="property">title</span>: <span class="string">"CARD 10 — Your New Feature"</span>,
+  <span class="property">dependsOn</span>: [CARD_IDS.<span class="property">C8</span>],  <span class="comment">// must finish C8 first</span>
+  <span class="property">labels</span>: [L.<span class="property">Critical</span>, L.<span class="property">Server</span>],
+  <span class="property">desc</span>: <span class="function">block</span>([
+    <span class="string">"## Objective"</span>,
+    <span class="string">"Describe what this card achieves."</span>,
+    <span class="string">""</span>,
+    <span class="string">"## Depends On"</span>,
+    <span class="string">`- ${CARD_IDS.C8}`</span>,
+    <span class="string">""</span>,
+    <span class="string">"## Completion Criteria"</span>,
+    <span class="string">"- Define when this card is done"</span>,
+  ]),
+  <span class="property">checklists</span>: [
+    {
+      <span class="property">title</span>: <span class="string">"Execution Checklist (Ordered)"</span>,
+      <span class="property">items</span>: [
+        <span class="string">"Step 1"</span>,
+        <span class="string">"Step 2"</span>,
+        <span class="string">"Step 3"</span>,
+      ],
+    },
+    {
+      <span class="property">title</span>: <span class="string">"Acceptance Tests"</span>,
+      <span class="property">items</span>: [
+        <span class="string">"Test condition 1"</span>,
+        <span class="string">"Test condition 2"</span>,
+      ],
+    },
+  ],
+  <span class="property">devNotes</span>: <span class="function">block</span>([
+    <span class="string">"DEV NOTES (Architecture &amp; Pitfalls)"</span>,
+    <span class="string">"- Guidance for the developer."</span>,
+  ]),
+}</pre>
+          </div>
+
+          <h3>Modifying the Definition of Done</h3>
+          <p>The global Definition of Done is defined in the <code>DEFINITION_OF_DONE</code> array near the top of <code>trelloSetup.js</code>. Add, remove, or edit items as needed.</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>trelloSetup.js &mdash; editing the DoD</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="keyword">const</span> DEFINITION_OF_DONE = [
+  <span class="string">"Runs in Studio with zero errors in Output"</span>,
+  <span class="string">"Server-authoritative rules not violated"</span>,
+  <span class="string">"No gameplay logic placed in Workspace"</span>,
+  <span class="string">"Code is modular (Managers/Systems)"</span>,
+  <span class="string">"No magic numbers: key constants centralized"</span>,
+  <span class="string">"Basic logging added where it helps debugging"</span>,
+  <span class="string">"Edge cases handled (nil targets, dead targets)"</span>,
+  <span class="string">"Performance sanity: no runaway loops"</span>,
+  <span class="string">"Quick manual test performed and recorded"</span>,
+  <span class="comment">// Add your own items here:</span>
+  <span class="string">"Accessibility check: screen reader tested"</span>,
+];</pre>
+          </div>
+
+          <h3>Changing Labels</h3>
+          <p>Labels are created in the <code>main()</code> function. To add a new label, add a <code>findOrCreateLabel</code> call and reference the new label ID in your card specs.</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>trelloSetup.js &mdash; adding a label</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="keyword">const</span> labelIds = {
+  <span class="comment">// ...existing labels...</span>
+  <span class="property">Testing</span>: <span class="keyword">await</span> <span class="function">findOrCreateLabel</span>(boardId, <span class="string">"Testing"</span>, <span class="string">"lime"</span>),
+};</pre>
+          </div>
+
+          <p>Trello supports these label colors: <code>green</code>, <code>yellow</code>, <code>orange</code>, <code>red</code>, <code>purple</code>, <code>blue</code>, <code>sky</code>, <code>lime</code>, <code>pink</code>, <code>black</code>.</p>
+
+          <h3>Modifying Checklists</h3>
+          <p>Each card's <code>checklists</code> array accepts any number of checklist objects. Each object has a <code>title</code> and an <code>items</code> array of strings.</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>checklist structure</span></div>
+            <pre><span class="property">checklists</span>: [
+  {
+    <span class="property">title</span>: <span class="string">"Execution Checklist (Ordered)"</span>,
+    <span class="property">items</span>: [<span class="string">"Step 1"</span>, <span class="string">"Step 2"</span>, <span class="string">"Step 3"</span>],
+  },
+  {
+    <span class="property">title</span>: <span class="string">"Acceptance Tests"</span>,
+    <span class="property">items</span>: [<span class="string">"Test 1"</span>, <span class="string">"Test 2"</span>],
+  },
+  {
+    <span class="property">title</span>: <span class="string">"Research Notes"</span>,    <span class="comment">// add as many as you want</span>
+    <span class="property">items</span>: [<span class="string">"Link 1"</span>, <span class="string">"Link 2"</span>],
+  },
+]</pre>
+          </div>
+
+          <h3>Adding More Lists</h3>
+          <p>Lists are created in <code>main()</code> with <code>findOrCreateList()</code>. Add new lists in the order you want them to appear on the board (Trello creates them left-to-right).</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>trelloSetup.js &mdash; adding lists</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="comment">// Add new lists in left-to-right order</span>
+<span class="keyword">await</span> <span class="function">findOrCreateList</span>(boardId, <span class="string">"In Review"</span>);
+<span class="keyword">await</span> <span class="function">findOrCreateList</span>(boardId, <span class="string">"Blocked"</span>);
+<span class="keyword">await</span> <span class="function">findOrCreateList</span>(boardId, <span class="string">"QA Testing"</span>);</pre>
+          </div>
+
+          <h3>Version Control Workflow</h3>
+          <p>Because the board spec is code, you get full version control on board changes.</p>
+
+          <div class="code-block">
+            <div class="code-block-header"><span>bash</span>
+              <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="comment"># Edit the board spec</span>
+<span class="prompt">$</span> code trelloSetup.js
+
+<span class="comment"># Commit the change</span>
+<span class="prompt">$</span> git add trelloSetup.js
+<span class="prompt">$</span> git commit -m <span class="string">"Add QA testing list and code review checklist"</span>
+
+<span class="comment"># Push and re-run</span>
+<span class="prompt">$</span> git push
+<span class="prompt">$</span> node trelloSetup.js</pre>
+          </div>
+
+          <div class="callout">
+            <span class="callout-label info-label">Key Principle</span>
+            <p>Your board is infrastructure as code. Every change is committed, reviewed, and auditable. If something goes wrong, <code>git revert</code> and re-run.</p>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="footer">
+      <p>&copy; 2026 CushLabs AI Services</p>
+    </footer>
+
+  </div>
+
+  <script>
+    /* ══════════════════════════════════════════════════════════════
+       MOBILE MENU
+       ══════════════════════════════════════════════════════════════ */
+    function toggleMenu() {
+      document.getElementById('mobileMenu').classList.toggle('open');
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SIDEBAR TOGGLE (Mobile)
+       ══════════════════════════════════════════════════════════════ */
+    function toggleSidebar() {
+      document.getElementById('docsSidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+
+    function closeSidebar() {
+      document.getElementById('docsSidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    }
+
+    // Close sidebar when a link is clicked (mobile)
+    document.querySelectorAll('#sidebarNav a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        if (window.innerWidth <= 900) {
+          closeSidebar();
+        }
+      });
+    });
+
+    /* ══════════════════════════════════════════════════════════════
+       ACTIVE SIDEBAR LINK (Scroll Spy)
+       ══════════════════════════════════════════════════════════════ */
+    var sectionIds = [
+      'getting-started',
+      'configuration',
+      'running-the-script',
+      'board-structure',
+      'card-specification',
+      'idempotency',
+      'trello-power-up',
+      'customization'
+    ];
+
+    var sidebarLinks = {};
+    document.querySelectorAll('#sidebarNav a').forEach(function(link) {
+      var href = link.getAttribute('href').substring(1);
+      sidebarLinks[href] = link;
+    });
+
+    function updateActiveLink() {
+      var scrollPos = window.scrollY + 120;
+      var currentId = sectionIds[0];
+
+      for (var i = 0; i < sectionIds.length; i++) {
+        var section = document.getElementById(sectionIds[i]);
+        if (section && section.offsetTop <= scrollPos) {
+          currentId = sectionIds[i];
+        }
+      }
+
+      for (var id in sidebarLinks) {
+        if (sidebarLinks.hasOwnProperty(id)) {
+          if (id === currentId) {
+            sidebarLinks[id].classList.add('active');
+          } else {
+            sidebarLinks[id].classList.remove('active');
+          }
+        }
+      }
+    }
+
+    var scrollTicking = false;
+    window.addEventListener('scroll', function() {
+      if (!scrollTicking) {
+        requestAnimationFrame(function() {
+          updateActiveLink();
+          scrollTicking = false;
+        });
+        scrollTicking = true;
+      }
+    });
+
+    // Set initial active link
+    updateActiveLink();
+
+    /* ══════════════════════════════════════════════════════════════
+       COPY CODE BUTTON
+       ══════════════════════════════════════════════════════════════ */
+    function copyCode(button) {
+      var codeBlock = button.closest('.code-block');
+      var pre = codeBlock.querySelector('pre');
+      var text = pre.textContent || pre.innerText;
+
+      navigator.clipboard.writeText(text).then(function() {
+        button.textContent = 'Copied!';
+        button.classList.add('copied');
+        setTimeout(function() {
+          button.textContent = 'Copy';
+          button.classList.remove('copied');
+        }, 2000);
+      }).catch(function() {
+        // Fallback for older browsers
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          button.textContent = 'Copied!';
+          button.classList.add('copied');
+          setTimeout(function() {
+            button.textContent = 'Copy';
+            button.classList.remove('copied');
+          }, 2000);
+        } catch (e) {
+          button.textContent = 'Failed';
+        }
+        document.body.removeChild(textarea);
+      });
+    }
+  </script>
+
+</body>
+</html>
