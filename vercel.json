@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/connector", "destination": "/connector.html" },
+    { "source": "/docs", "destination": "/docs.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

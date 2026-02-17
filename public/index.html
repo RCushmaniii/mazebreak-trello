@@ -3,13 +3,1482 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MazeBreak Trello — Sprint Infrastructure as Code</title>
+  <meta name="description" content="Production-grade Trello sprint board in under 30 seconds. One command. Full sprint. Zero setup friction.">
+  <meta property="og:title" content="MazeBreak Trello — Sprint Board Automation">
+  <meta property="og:description" content="Run one command. Ship a sprint. Production-grade Trello board provisioning via API.">
+  <meta property="og:image" content="/images/mazebreak-trello.jpg">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <title>MazeBreak — Trello Power-Up</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ══════════════════════════════════════════════════════════════
+       DESIGN SYSTEM
+       ══════════════════════════════════════════════════════════════ */
+    :root {
+      --bg: #050508;
+      --bg-surface: #0a0a10;
+      --bg-card: #0d0d14;
+      --bg-elevated: #12121a;
+      --border: #1a1a2e;
+      --border-subtle: #141420;
+      --text: #e0e0e8;
+      --text-secondary: #6b7084;
+      --text-muted: #454560;
+      --accent: #00e5ff;
+      --accent-dim: #0097a7;
+      --accent-glow: rgba(0, 229, 255, 0.08);
+      --accent-glow-md: rgba(0, 229, 255, 0.15);
+      --accent-glow-strong: rgba(0, 229, 255, 0.25);
+      --danger: #ff4757;
+      --success: #00e676;
+      --warning: #ffab00;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --max-w: 1200px;
+      --section-pad: clamp(80px, 12vw, 140px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    ::selection {
+      background: var(--accent-glow-strong);
+      color: var(--accent);
+    }
+
+    a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: #00fff7; }
+
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       GRID BACKGROUND
+       ══════════════════════════════════════════════════════════════ */
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 70%);
+    }
+
+    .content-wrapper { position: relative; z-index: 1; }
+
+    /* ══════════════════════════════════════════════════════════════
+       NAVIGATION
+       ══════════════════════════════════════════════════════════════ */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(5, 5, 8, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.3s;
+    }
+
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-logo .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 18px;
+      background: var(--accent);
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 20px;
+      height: 1.5px;
+      background: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 57px;
+      left: 0;
+      right: 0;
+      background: rgba(5, 5, 8, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 24px;
+      z-index: 99;
+    }
+
+    .mobile-menu.open { display: flex; flex-direction: column; gap: 16px; }
+
+    .mobile-menu a {
+      font-size: 16px;
+      color: var(--text-secondary);
+      padding: 8px 0;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       HERO SECTION
+       ══════════════════════════════════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(60px);
+    }
+
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 80px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      max-width: 800px;
+    }
+
+    .hero h1 .accent { color: var(--accent); }
+
+    .hero .subtitle {
+      font-size: clamp(16px, 2.5vw, 22px);
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin-bottom: 48px;
+      font-weight: 400;
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 64px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 14px 28px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0.5s;
+    }
+
+    .btn-primary:hover { background: #00fff7; transform: translateY(-1px); box-shadow: 0 8px 32px var(--accent-glow-md); }
+    .btn-primary:hover::before { transform: translateX(100%); }
+
+    .btn-secondary {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 14px 28px;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover { border-color: var(--accent-dim); color: var(--text); }
+
+    /* Terminal */
+    .terminal {
+      width: 100%;
+      max-width: 640px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      text-align: left;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 60px var(--accent-glow);
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #febc2e; }
+    .terminal-dot.green { background: #28c840; }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: 8px;
+    }
+
+    .terminal-body {
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.8;
+      min-height: 280px;
+    }
+
+    .terminal-line { display: block; white-space: pre-wrap; }
+    .terminal-line .prompt { color: var(--accent); }
+    .terminal-line .cmd { color: var(--text); }
+    .terminal-line .success { color: var(--success); }
+    .terminal-line .info { color: var(--text-secondary); }
+    .terminal-line .dim { color: var(--text-muted); }
+
+    .terminal-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: var(--accent);
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+      box-shadow: 0 0 8px var(--accent-glow-strong);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PROBLEM SECTION
+       ══════════════════════════════════════════════════════════════ */
+    .problem {
+      padding: var(--section-pad) 0;
+      position: relative;
+    }
+
+    .problem .section-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+    }
+
+    .problem h2 {
+      font-size: clamp(28px, 4.5vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 64px;
+      max-width: 700px;
+    }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .problem-grid { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    .problem-col h3 {
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .problem-col.old h3 { color: var(--danger); border-color: rgba(255, 71, 87, 0.2); }
+    .problem-col.new h3 { color: var(--accent); border-color: rgba(0, 229, 255, 0.2); }
+
+    .problem-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .problem-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .problem-list li .icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+      font-size: 14px;
+    }
+
+    .problem-col.old .icon { color: var(--danger); }
+    .problem-col.new .icon { color: var(--accent); }
+
+    .problem-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 64px 0 0;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SOLUTION SECTION
+       ══════════════════════════════════════════════════════════════ */
+    .solution {
+      padding: var(--section-pad) 0;
+    }
+
+    .solution .section-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+    }
+
+    .solution h2 {
+      font-size: clamp(28px, 4.5vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+
+    .solution .lead {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 64px;
+      line-height: 1.6;
+    }
+
+    .board-showcase {
+      position: relative;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: var(--bg-surface);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+    }
+
+    .board-showcase img {
+      width: 100%;
+      display: block;
+      opacity: 0.9;
+      transition: opacity 0.3s;
+    }
+
+    .board-showcase:hover img { opacity: 1; }
+
+    .board-hotspots {
+      position: absolute;
+      inset: 0;
+    }
+
+    .hotspot {
+      position: absolute;
+      cursor: pointer;
+    }
+
+    .hotspot-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow-strong);
+      animation: pulse-dot 2s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { box-shadow: 0 0 12px var(--accent-glow-strong); transform: scale(1); }
+      50% { box-shadow: 0 0 24px var(--accent-glow-md); transform: scale(1.2); }
+    }
+
+    .hotspot-tooltip {
+      position: absolute;
+      top: -8px;
+      left: 24px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: all 0.2s;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .hotspot:hover .hotspot-tooltip {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FEATURES SECTION
+       ══════════════════════════════════════════════════════════════ */
+    .features {
+      padding: var(--section-pad) 0;
+    }
+
+    .features .section-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+    }
+
+    .features h2 {
+      font-size: clamp(28px, 4.5vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 80px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    @media (max-width: 768px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+
+    .feature-card {
+      padding: 40px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border);
+      background: var(--bg-card);
+      transform: translateY(-2px);
+    }
+
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-glow);
+      border: 1px solid rgba(0, 229, 255, 0.1);
+      margin-bottom: 24px;
+      font-size: 22px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-card p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .feature-card .mono {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      margin-top: 16px;
+      display: block;
+    }
+
+    .feature-card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       COUNTERS
+       ══════════════════════════════════════════════════════════════ */
+    .counters {
+      padding: 80px 0;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .counters-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 48px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .counters-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    }
+
+    .counter-item .number {
+      font-family: var(--font-mono);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .counter-item .label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       DEMO SECTION
+       ══════════════════════════════════════════════════════════════ */
+    .demo {
+      padding: var(--section-pad) 0;
+      text-align: center;
+    }
+
+    .demo .section-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+    }
+
+    .demo h2 {
+      font-size: clamp(28px, 4.5vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 64px;
+    }
+
+    .demo-frame {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto 48px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+    }
+
+    .demo-frame::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background: linear-gradient(135deg, var(--accent-glow), transparent 30%, transparent 70%, var(--accent-glow));
+      z-index: 0;
+      animation: sweep 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes sweep {
+      0% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.3; }
+    }
+
+    .demo-frame img {
+      width: 100%;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+
+    .demo-bullets {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px 40px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .demo-bullet {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+    }
+
+    .demo-bullet:hover { transform: scale(1.05); }
+
+    .demo-bullet .check {
+      color: var(--accent);
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       COMPARISON TABLE
+       ══════════════════════════════════════════════════════════════ */
+    .comparison {
+      padding: var(--section-pad) 0;
+    }
+
+    .comparison .section-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+    }
+
+    .comparison h2 {
+      font-size: clamp(28px, 4.5vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 64px;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .comparison-table thead th {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 16px 24px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comparison-table thead th:first-child { color: var(--text-muted); }
+    .comparison-table thead th:last-child { color: var(--accent); }
+
+    .comparison-table tbody td {
+      padding: 18px 24px;
+      font-size: 15px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: top;
+    }
+
+    .comparison-table tbody td:first-child { color: var(--text-muted); }
+    .comparison-table tbody td:last-child {
+      color: var(--text);
+      position: relative;
+    }
+
+    .comparison-table tbody tr {
+      transition: background 0.2s;
+    }
+
+    .comparison-table tbody tr:hover {
+      background: var(--bg-surface);
+    }
+
+    .comparison-table tbody td:last-child::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 2px;
+      height: 60%;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .comparison-table tbody tr:hover td:last-child::before { opacity: 1; }
+
+    @media (max-width: 768px) {
+      .comparison-table thead th,
+      .comparison-table tbody td {
+        padding: 12px 16px;
+        font-size: 13px;
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       BUILT FOR SECTION
+       ══════════════════════════════════════════════════════════════ */
+    .built-for {
+      padding: var(--section-pad) 0;
+      text-align: center;
+    }
+
+    .built-for h2 {
+      font-size: clamp(28px, 4.5vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 64px;
+    }
+
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+
+    @media (max-width: 768px) {
+      .pillars { grid-template-columns: 1fr; gap: 24px; }
+    }
+
+    .pillar {
+      padding: 48px 32px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      transition: all 0.3s;
+    }
+
+    .pillar:hover {
+      border-color: var(--border);
+      transform: translateY(-2px);
+    }
+
+    .pillar-icon {
+      font-size: 32px;
+      margin-bottom: 24px;
+      display: block;
+      color: var(--accent);
+    }
+
+    .pillar h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .pillar p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FINAL CTA
+       ══════════════════════════════════════════════════════════════ */
+    .final-cta {
+      padding: var(--section-pad) 0 120px;
+      text-align: center;
+      position: relative;
+    }
+
+    .final-cta::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(80px);
+    }
+
+    .final-cta h2 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 32px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .final-cta .subtitle {
+      font-size: 17px;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FOOTER
+       ══════════════════════════════════════════════════════════════ */
+    .footer {
+      padding: 48px 24px;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+    }
+
+    .footer p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .footer a { color: var(--text-secondary); }
+    .footer a:hover { color: var(--accent); }
+
+    /* ══════════════════════════════════════════════════════════════
+       ANIMATIONS
+       ══════════════════════════════════════════════════════════════ */
+    .anim {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .anim.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .anim-delay-1 { transition-delay: 0.1s; }
+    .anim-delay-2 { transition-delay: 0.2s; }
+    .anim-delay-3 { transition-delay: 0.3s; }
+    .anim-delay-4 { transition-delay: 0.4s; }
+
+    .anim-left {
+      opacity: 0;
+      transform: translateX(-32px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .anim-right {
+      opacity: 0;
+      transform: translateX(32px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .anim-left.visible, .anim-right.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      .anim, .anim-left, .anim-right { opacity: 1; transform: none; }
+    }
+  </style>
 </head>
 <body>
-  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+
+  <!-- Grid Background -->
+  <div class="grid-bg" aria-hidden="true"></div>
+
+  <div class="content-wrapper">
+
+    <!-- ═══ NAVIGATION ═══ -->
+    <nav class="nav" role="navigation">
+      <div class="nav-logo">
+        MazeBreak<span class="cursor"></span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="/docs">Docs</a>
+        <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="nav-hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#features" onclick="toggleMenu()">Features</a>
+      <a href="#demo" onclick="toggleMenu()">Demo</a>
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener">GitHub</a>
+    </div>
+
+    <!-- ═══ HERO ═══ -->
+    <section class="hero" id="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <h1>Run One Command.<br><span class="accent">Ship a Sprint.</span></h1>
+      <p class="subtitle">Production-grade Trello sprint board in under 30 seconds. Idempotent. Repeatable. Version-controlled.</p>
+      <div class="hero-ctas">
+        <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener" class="btn-primary">Run trelloSetup.js</a>
+        <a href="#features" class="btn-secondary">See How It Works</a>
+      </div>
+      <div class="terminal" role="img" aria-label="Terminal demo showing sprint board creation in 30 seconds">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+          <span class="terminal-title">mazebreak-trello</span>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <span class="terminal-cursor" id="termCursor"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PROBLEM ═══ -->
+    <section class="problem" id="problem">
+      <div class="container">
+        <div class="anim">
+          <p class="section-label">// the problem</p>
+          <h2>Manual boards drift.<br>Infrastructure doesn't.</h2>
+        </div>
+        <div class="problem-grid">
+          <div class="problem-col old anim anim-delay-1">
+            <h3>Traditional Setup</h3>
+            <ul class="problem-list">
+              <li><span class="icon">&times;</span> 45-60 minutes clicking around Trello</li>
+              <li><span class="icon">&times;</span> Inconsistent card quality across the board</li>
+              <li><span class="icon">&times;</span> Dependencies live in someone's head</li>
+              <li><span class="icon">&times;</span> "Done" means different things to everyone</li>
+              <li><span class="icon">&times;</span> New team members start lost</li>
+              <li><span class="icon">&times;</span> Board can't be replicated or version-controlled</li>
+              <li><span class="icon">&times;</span> Scope creep sneaks in unchecked</li>
+            </ul>
+          </div>
+          <div class="problem-col new anim anim-delay-2">
+            <h3>MazeBreak Trello</h3>
+            <ul class="problem-list">
+              <li><span class="icon">&#10003;</span> 30 seconds. One command.</li>
+              <li><span class="icon">&#10003;</span> Every card has identical structure</li>
+              <li><span class="icon">&#10003;</span> Dependencies encoded in titles and descriptions</li>
+              <li><span class="icon">&#10003;</span> 9-item Definition of Done on every card</li>
+              <li><span class="icon">&#10003;</span> 4 onboarding instruction cards built in</li>
+              <li><span class="icon">&#10003;</span> Re-run the script. Identical board.</li>
+              <li><span class="icon">&#10003;</span> Gate Rules card + Exit Gate enforce discipline</li>
+            </ul>
+          </div>
+        </div>
+        <div class="problem-divider"></div>
+      </div>
+    </section>
+
+    <!-- ═══ SOLUTION ═══ -->
+    <section class="solution" id="solution">
+      <div class="container">
+        <div class="anim">
+          <p class="section-label">// the system</p>
+          <h2>Your Sprint. Encoded.<br>Enforced. Repeatable.</h2>
+          <p class="lead">Every card ships with execution checklists, acceptance tests, a global Definition of Done, developer notes, and dependency tracking. No card is a second-class citizen.</p>
+        </div>
+        <div class="board-showcase anim anim-delay-1">
+          <img src="/images/mazebreak-trello.jpg" alt="MazeBreak Trello board showing 8 workflow lists and 10 Sprint 0 cards with color-coded labels" loading="lazy">
+          <div class="board-hotspots">
+            <div class="hotspot" style="top: 12%; right: 8%;">
+              <div class="hotspot-dot"></div>
+              <div class="hotspot-tooltip">Color-coded label filtering</div>
+            </div>
+            <div class="hotspot" style="top: 16%; right: 22%;">
+              <div class="hotspot-dot"></div>
+              <div class="hotspot-tooltip">[S0-##] Dependency encoded</div>
+            </div>
+            <div class="hotspot" style="top: 55%; right: 6%;">
+              <div class="hotspot-dot"></div>
+              <div class="hotspot-tooltip">0/17 = 9 DoD + 8 execution items</div>
+            </div>
+            <div class="hotspot" style="top: 30%; left: 4%;">
+              <div class="hotspot-dot"></div>
+              <div class="hotspot-tooltip">Built-in onboarding cards</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ FEATURES ═══ -->
+    <section class="features" id="features">
+      <div class="container">
+        <div class="anim">
+          <p class="section-label">// features &rarr; outcomes</p>
+          <h2>Not just features.<br>Enforced outcomes.</h2>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card anim anim-delay-1">
+            <div class="feature-icon">&#x21bb;</div>
+            <h3>Idempotent Execution</h3>
+            <p>Run it once. Run it twice. Run it after someone manually edits the board. Find-or-create for every resource. No duplicates. No drift. No cleanup.</p>
+            <span class="mono">safe to re-run &mdash; always</span>
+          </div>
+          <div class="feature-card anim anim-delay-2">
+            <div class="feature-icon">&#x2192;</div>
+            <h3>Dependency-Encoded Cards</h3>
+            <p>Every card title carries a [S0-##] prefix. Descriptions list prerequisites. An ASCII dependency tree lives on the board. Your next task is always obvious.</p>
+            <span class="mono">[S0-00] &rarr; [S0-01] &rarr; [S0-02] &rarr; ...</span>
+          </div>
+          <div class="feature-card anim anim-delay-1">
+            <div class="feature-icon">&#x2713;</div>
+            <h3>Definition of Done on Every Card</h3>
+            <p>9-item quality checklist auto-attached to every single card. Zero-error runs, server authority, code modularity, edge cases, performance, and test documentation.</p>
+            <span class="mono">"done" means done. not "basically done."</span>
+          </div>
+          <div class="feature-card anim anim-delay-2">
+            <div class="feature-icon">&#x26D4;</div>
+            <h3>Sprint Exit Gate</h3>
+            <p>A dedicated ship/no-ship card with 8 gate checks. The sprint doesn't end until responsiveness, readability, feedback, stability, and fairness all pass.</p>
+            <span class="mono">no soft exits. no "good enough."</span>
+          </div>
+          <div class="feature-card full-width anim anim-delay-1">
+            <div class="feature-icon">&#x2B60;</div>
+            <h3>Version-Controlled Board Spec</h3>
+            <p>Your entire sprint board structure lives in a single JS file in Git. Change a card, add a checklist item, adjust a label &mdash; commit, push, re-run. Full history. Full rollback. Full code review on board changes. This is infrastructure as code, not a template.</p>
+            <span class="mono">git commit &rarr; git push &rarr; node trelloSetup.js</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ COUNTERS ═══ -->
+    <section class="counters" id="counters">
+      <div class="container">
+        <div class="counters-grid">
+          <div class="counter-item anim">
+            <div class="number" data-target="30" data-suffix="s">0s</div>
+            <div class="label">Setup Time</div>
+          </div>
+          <div class="counter-item anim anim-delay-1">
+            <div class="number" data-target="8">0</div>
+            <div class="label">Workflow Lists</div>
+          </div>
+          <div class="counter-item anim anim-delay-2">
+            <div class="number" data-target="10">0</div>
+            <div class="label">Sprint Cards</div>
+          </div>
+          <div class="counter-item anim anim-delay-3">
+            <div class="number" data-target="100" data-prefix="" data-suffix="+">0</div>
+            <div class="label">Checklist Items</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ DEMO ═══ -->
+    <section class="demo" id="demo">
+      <div class="container">
+        <div class="anim">
+          <p class="section-label">// see it in action</p>
+          <h2>See It Build a Sprint<br>in 30 Seconds</h2>
+        </div>
+        <div class="demo-frame anim anim-delay-1">
+          <img src="/images/mazebreak-trello.jpg" alt="MazeBreak Trello board fully provisioned" loading="lazy">
+        </div>
+        <div class="demo-bullets anim anim-delay-2">
+          <div class="demo-bullet"><span class="check">&#10003;</span> 8 lists auto-built</div>
+          <div class="demo-bullet"><span class="check">&#10003;</span> 10 fully specified cards</div>
+          <div class="demo-bullet"><span class="check">&#10003;</span> 100+ checklist items</div>
+          <div class="demo-bullet"><span class="check">&#10003;</span> Onboarding included</div>
+          <div class="demo-bullet"><span class="check">&#10003;</span> Power-Up ready</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ COMPARISON ═══ -->
+    <section class="comparison" id="comparison">
+      <div class="container">
+        <div class="anim">
+          <p class="section-label">// before &amp; after</p>
+          <h2>Stop Clicking.<br>Start Shipping.</h2>
+        </div>
+        <div class="anim anim-delay-1" style="overflow-x: auto;">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Traditional Setup</th>
+                <th>MazeBreak Trello</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>45-60 min clicking around Trello</td><td>30 seconds, one command</td></tr>
+              <tr><td>Inconsistent card quality</td><td>Every card &mdash; identical structure</td></tr>
+              <tr><td>Dependencies in someone's head</td><td>Encoded in titles + descriptions</td></tr>
+              <tr><td>"Done" means different things</td><td>9-item DoD on every card</td></tr>
+              <tr><td>New team members start lost</td><td>4 onboarding cards built in</td></tr>
+              <tr><td>Board can't be replicated</td><td>Re-run the script. Identical board.</td></tr>
+              <tr><td>Manual edits break structure</td><td>Idempotent &mdash; re-run fixes drift</td></tr>
+              <tr><td>Scope creep sneaks in unchecked</td><td>Gate Rules + Exit Gate enforce discipline</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ BUILT FOR ═══ -->
+    <section class="built-for" id="built-for">
+      <div class="container">
+        <h2 class="anim">Built for Serious Teams</h2>
+        <div class="pillars">
+          <div class="pillar anim anim-delay-1">
+            <span class="pillar-icon">&#x25C9;</span>
+            <h3>Precision</h3>
+            <p>Every card, checklist, and label is placed by API call &mdash; not by hand. No human inconsistency. No missed items. No drift.</p>
+          </div>
+          <div class="pillar anim anim-delay-2">
+            <span class="pillar-icon">&#x25A0;</span>
+            <h3>Discipline</h3>
+            <p>Gate rules lock scope. Exit gates enforce quality. Dependencies enforce order. The board doesn't let you cut corners.</p>
+          </div>
+          <div class="pillar anim anim-delay-3">
+            <span class="pillar-icon">&#x21BB;</span>
+            <h3>Repeatability</h3>
+            <p>Tear it down. Re-run. Identical board. New sprint? New project? Same infrastructure. Version-controlled and auditable.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ FINAL CTA ═══ -->
+    <section class="final-cta" id="contact">
+      <div class="container">
+        <h2 class="anim">Stop Setting Up Boards.<br>Start Shipping Sprints.</h2>
+        <p class="subtitle anim anim-delay-1">Not a template. A system.</p>
+        <div class="cta-buttons anim anim-delay-2">
+          <a href="https://wa.me/523315590572?text=Hi%2C%20I%20found%20you%20through%20the%20MazeBreak%20Trello%20repo%20and%20had%20a%20quick%20question." target="_blank" rel="noopener" class="btn-primary">Contact the Developer</a>
+          <a href="/docs" class="btn-secondary">View Documentation</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="footer">
+      <p>&copy; 2026 <a href="https://github.com/RCushmaniii" target="_blank" rel="noopener">CushLabs AI Services</a>. Built with discipline.</p>
+    </footer>
+
+  </div>
+
   <script>
-    TrelloPowerUp.initialize({});
+    /* ══════════════════════════════════════════════════════════════
+       MOBILE MENU
+       ══════════════════════════════════════════════════════════════ */
+    function toggleMenu() {
+      document.getElementById('mobileMenu').classList.toggle('open');
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SCROLL ANIMATIONS (Intersection Observer)
+       ══════════════════════════════════════════════════════════════ */
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.anim, .anim-left, .anim-right').forEach(el => observer.observe(el));
+
+    /* ══════════════════════════════════════════════════════════════
+       COUNTER ANIMATION
+       ══════════════════════════════════════════════════════════════ */
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.dataset.target);
+          const suffix = el.dataset.suffix || '';
+          const prefix = el.dataset.prefix || '';
+          let current = 0;
+          const step = Math.max(1, Math.floor(target / 40));
+          const interval = setInterval(() => {
+            current += step;
+            if (current >= target) {
+              current = target;
+              clearInterval(interval);
+            }
+            el.textContent = prefix + current + suffix;
+          }, 30);
+          counterObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.counter-item .number').forEach(el => counterObserver.observe(el));
+
+    /* ══════════════════════════════════════════════════════════════
+       TERMINAL TYPING ANIMATION
+       ══════════════════════════════════════════════════════════════ */
+    const termLines = [
+      { text: '$ node trelloSetup.js', type: 'cmd', charDelay: 45 },
+      { text: '', type: 'blank', pause: 400 },
+      { text: 'Starting MazeBreak Sprint 0 Trello build (idempotent)...', type: 'info', charDelay: 15 },
+      { text: '', type: 'blank', pause: 300 },
+      { text: '\u2705 Workspace Created: MazeBreak Development', type: 'success', pause: 200 },
+      { text: '\u2705 Board Created: MazeBreak \u2013 Core Development', type: 'success', pause: 150 },
+      { text: '\u2705 8 Lists Created', type: 'success', pause: 150 },
+      { text: '\u2705 8 Labels Created', type: 'success', pause: 150 },
+      { text: '', type: 'blank', pause: 200 },
+      { text: '\u2705 [S0-00] Gate Rules \u2014 2 checklists, dev notes, DoD', type: 'success', pause: 120 },
+      { text: '\u2705 [S0-01] Foundation Setup \u2014 2 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '\u2705 [S0-02] InputController \u2014 3 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '\u2705 [S0-03] CombatManager \u2014 3 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '\u2705 [S0-04] DamageResolver \u2014 3 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '\u2705 [S0-05] Zombie Enemy \u2014 3 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '\u2705 [S0-06] Health System \u2014 3 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '\u2705 [S0-07] Basic HUD \u2014 3 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '\u2705 [S0-08] Feel Tuning \u2014 3 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '\u2705 [S0-09] Exit Gate \u2014 2 checklists, dev notes, DoD', type: 'success', pause: 100 },
+      { text: '', type: 'blank', pause: 300 },
+      { text: '\u2705 Sprint 0 PRODUCTION++ complete.', type: 'success', pause: 100 },
+      { text: '   Safe to re-run (idempotent).', type: 'dim', pause: 500 },
+      { text: '', type: 'blank', pause: 200 },
+      { text: '$ ', type: 'prompt-end', charDelay: 0 },
+    ];
+
+    async function typeTerminal() {
+      const body = document.getElementById('terminalBody');
+      const cursor = document.getElementById('termCursor');
+      body.innerHTML = '';
+
+      for (const line of termLines) {
+        if (line.type === 'blank') {
+          const br = document.createElement('br');
+          body.appendChild(br);
+          await sleep(line.pause || 100);
+          continue;
+        }
+
+        const span = document.createElement('span');
+        span.className = 'terminal-line';
+
+        if (line.charDelay && line.charDelay > 0) {
+          body.appendChild(span);
+          body.appendChild(cursor);
+          for (let i = 0; i < line.text.length; i++) {
+            if (line.type === 'cmd' && i === 0) {
+              const promptSpan = document.createElement('span');
+              promptSpan.className = 'prompt';
+              promptSpan.textContent = '$ ';
+              span.appendChild(promptSpan);
+              i = 1;
+            }
+            span.appendChild(document.createTextNode(line.text[i]));
+            scrollTerminal(body);
+            await sleep(line.charDelay);
+          }
+          span.appendChild(document.createTextNode('\n'));
+        } else if (line.type === 'prompt-end') {
+          const promptSpan = document.createElement('span');
+          promptSpan.className = 'prompt';
+          promptSpan.textContent = '$ ';
+          span.appendChild(promptSpan);
+          body.appendChild(span);
+          body.appendChild(cursor);
+        } else {
+          const cssClass = line.type || 'info';
+          const inner = document.createElement('span');
+          inner.className = cssClass;
+          inner.textContent = line.text;
+          span.appendChild(inner);
+          span.appendChild(document.createTextNode('\n'));
+          body.appendChild(span);
+          body.appendChild(cursor);
+          scrollTerminal(body);
+          await sleep(line.pause || 100);
+        }
+      }
+    }
+
+    function scrollTerminal(el) {
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Start terminal animation when hero is visible
+    const heroObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setTimeout(typeTerminal, 800);
+        heroObserver.disconnect();
+      }
+    }, { threshold: 0.3 });
+
+    heroObserver.observe(document.getElementById('hero'));
+
+    /* ══════════════════════════════════════════════════════════════
+       NAV BACKGROUND ON SCROLL
+       ══════════════════════════════════════════════════════════════ */
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const nav = document.querySelector('.nav');
+          if (window.scrollY > 80) {
+            nav.style.background = 'rgba(5, 5, 8, 0.95)';
+          } else {
+            nav.style.background = 'rgba(5, 5, 8, 0.8)';
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
   </script>
+
 </body>
 </html>
