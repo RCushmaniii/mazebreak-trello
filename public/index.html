@@ -1165,7 +1165,7 @@
         <a href="/docs">Docs</a>
         <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <div class="nav-hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
+      <div class="nav-hamburger" onclick="toggleMenu()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleMenu()}" role="button" tabindex="0" aria-label="Toggle menu">
         <span></span><span></span><span></span>
       </div>
     </nav>
@@ -1173,8 +1173,8 @@
     <div class="mobile-menu" id="mobileMenu">
       <a href="#features" onclick="toggleMenu()">Features</a>
       <a href="#demo" onclick="toggleMenu()">Demo</a>
-      <a href="/docs">Docs</a>
-      <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener">GitHub</a>
+      <a href="/docs" onclick="toggleMenu()">Docs</a>
+      <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener" onclick="toggleMenu()">GitHub</a>
     </div>
 
     <!-- ═══ HERO ═══ -->

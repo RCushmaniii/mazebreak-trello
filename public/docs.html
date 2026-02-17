@@ -745,7 +745,7 @@
         <a href="/docs" class="active">Docs</a>
         <a href="https://github.com/RCushmaniii/mazebreak-trello" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <div class="nav-hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
+      <div class="nav-hamburger" onclick="toggleMenu()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleMenu()}" role="button" tabindex="0" aria-label="Toggle menu">
         <span></span><span></span><span></span>
       </div>
     </nav>
@@ -974,7 +974,7 @@ TRELLO_TOKEN=<span class="string">your_token_here</span></pre>
           <h2>Board Structure</h2>
 
           <h3>Lists</h3>
-          <p>The script creates 4 workflow lists that represent the card lifecycle.</p>
+          <p>The script creates 8 workflow lists that represent the full card lifecycle.</p>
 
           <div class="docs-table-wrap">
             <table class="docs-table">
@@ -986,8 +986,28 @@ TRELLO_TOKEN=<span class="string">your_token_here</span></pre>
               </thead>
               <tbody>
                 <tr>
+                  <td>Instructions</td>
+                  <td>Board overview, card lifecycle guide, Trello tips, and dependency map. Reference cards that explain how to use the board.</td>
+                </tr>
+                <tr>
                   <td>Sprint 0 &ndash; Combat Prototype</td>
                   <td>Active sprint work. All 10 Sprint 0 cards land here. Cards are worked in dependency order [S0-00] through [S0-09].</td>
+                </tr>
+                <tr>
+                  <td>In Progress</td>
+                  <td>Cards actively being worked on. Move cards here when you start implementation.</td>
+                </tr>
+                <tr>
+                  <td>Review / Playtest</td>
+                  <td>Cards awaiting code review or playtest validation before they can move to Done.</td>
+                </tr>
+                <tr>
+                  <td>Blocked</td>
+                  <td>Cards that are stuck waiting on a dependency, external resource, or decision. Add a comment explaining the blocker.</td>
+                </tr>
+                <tr>
+                  <td>Done</td>
+                  <td>Completed and verified work. Cards move here after all checklists and the Definition of Done are satisfied.</td>
                 </tr>
                 <tr>
                   <td>Sprint 1 &ndash; Core Loop</td>
@@ -996,10 +1016,6 @@ TRELLO_TOKEN=<span class="string">your_token_here</span></pre>
                 <tr>
                   <td>Backlog</td>
                   <td>Ideas, future work, and deferred items. Not prioritized yet.</td>
-                </tr>
-                <tr>
-                  <td>Done</td>
-                  <td>Completed and verified work. Cards move here after all checklists and the Definition of Done are satisfied.</td>
                 </tr>
               </tbody>
             </table>
@@ -1544,7 +1560,7 @@ TRELLO_TOKEN=<span class="string">your_token_here</span></pre>
 
     <!-- ═══ FOOTER ═══ -->
     <footer class="footer">
-      <p>&copy; 2026 CushLabs AI Services</p>
+      <p>&copy; 2026 <a href="https://cushlabs.ai" target="_blank" rel="noopener">CushLabs AI Services</a></p>
     </footer>
 
   </div>
