@@ -25,6 +25,10 @@ tags:
 thumbnail: "/images/mazebreak-trello.jpg"
 hero_images:
   - "/images/mazebreak-trello.jpg"
+  - "/images/mazebreak-trello01.jpg"
+  - "/images/mazebreak-trello02.jpg"
+  - "/images/mazebreak-trello03.jpg"
+  - "/images/mazebreak-trello04.jpg"
 demo_video_url: ""
 
 live_url: ""
