@@ -22,8 +22,9 @@ tags:
   - "game-development"
   - "api-integration"
 
-thumbnail: ""
-hero_images: []
+thumbnail: "/images/mazebreak-trello.jpg"
+hero_images:
+  - "/images/mazebreak-trello.jpg"
 demo_video_url: ""
 
 live_url: ""
