@@ -32,8 +32,8 @@ hero_images:
   - "/images/mazebreak-trello05.jpg"
 demo_video_url: "/video/MazeBreak__Sprint_as_Code.mp4"
 
-live_url: ""
-demo_url: ""
+live_url: "https://mazebreak-trello.vercel.app/"
+demo_url: "https://mazebreak-trello.vercel.app/#demo"
 case_study_url: ""
 
 problem_solved: |
