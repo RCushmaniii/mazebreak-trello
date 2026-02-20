@@ -1,19 +1,53 @@
 ---
-# =============================================================================
-# PORTFOLIO.md — MazeBreak Trello
-# =============================================================================
-
+# === CONTROL FLAGS ===
 portfolio_enabled: true
 portfolio_priority: 4
 portfolio_featured: false
-portfolio_last_reviewed: "2026-02-17"
 
+# === CARD DISPLAY ===
 title: "MazeBreak Trello Board Automation"
 tagline: "Idempotent sprint board provisioning via Trello REST API for Roblox game development"
 slug: "mazebreak-trello"
-
 category: "Developer Tools"
-target_audience: "Game development teams and project managers who need repeatable, version-controlled project board setup"
+tech_stack:
+  - "Node.js"
+  - "axios"
+  - "dotenv"
+  - "Trello REST API"
+  - "Vercel"
+thumbnail: "/images/mazebreak-trello.jpg"
+
+# === DETAIL PAGE ===
+
+# === MEDIA: PORTFOLIO SLIDES ===
+slides:
+  - src: "/images/mazebreak-trello.jpg"
+    alt_en: "MazeBreak Trello Board Automation slide 1"
+    alt_es: "MazeBreak Trello Board Automation diapositiva 1"
+  - src: "/images/mazebreak-trello01.jpg"
+    alt_en: "MazeBreak Trello Board Automation slide 2"
+    alt_es: "MazeBreak Trello Board Automation diapositiva 2"
+  - src: "/images/mazebreak-trello02.jpg"
+    alt_en: "MazeBreak Trello Board Automation slide 3"
+    alt_es: "MazeBreak Trello Board Automation diapositiva 3"
+  - src: "/images/mazebreak-trello03.jpg"
+    alt_en: "MazeBreak Trello Board Automation slide 4"
+    alt_es: "MazeBreak Trello Board Automation diapositiva 4"
+  - src: "/images/mazebreak-trello04.jpg"
+    alt_en: "MazeBreak Trello Board Automation slide 5"
+    alt_es: "MazeBreak Trello Board Automation diapositiva 5"
+  - src: "/images/mazebreak-trello05.jpg"
+    alt_en: "MazeBreak Trello Board Automation slide 6"
+    alt_es: "MazeBreak Trello Board Automation diapositiva 6"
+
+# === MEDIA: VIDEO ===
+video_url: "/video/MazeBreak__Sprint_as_Code.mp4"
+
+# === LINKS ===
+demo_url: "https://mazebreak-trello.vercel.app/#demo"
+live_url: "https://mazebreak-trello.vercel.app/"
+
+# === OPTIONAL ===
 tags:
   - "developer-tools"
   - "automation"
@@ -21,44 +55,6 @@ tags:
   - "trello"
   - "game-development"
   - "api-integration"
-
-thumbnail: "/images/mazebreak-trello.jpg"
-hero_images:
-  - "/images/mazebreak-trello.jpg"
-  - "/images/mazebreak-trello01.jpg"
-  - "/images/mazebreak-trello02.jpg"
-  - "/images/mazebreak-trello03.jpg"
-  - "/images/mazebreak-trello04.jpg"
-  - "/images/mazebreak-trello05.jpg"
-demo_video_url: "/video/MazeBreak__Sprint_as_Code.mp4"
-
-live_url: "https://mazebreak-trello.vercel.app/"
-demo_url: "https://mazebreak-trello.vercel.app/#demo"
-case_study_url: ""
-
-problem_solved: |
-  Setting up a sprint board manually in Trello is slow, error-prone, and not
-  repeatable. Cards lack consistent structure — some have checklists, some don't.
-  Acceptance criteria and definition-of-done standards get forgotten. Dependencies
-  between cards exist only in people's heads. When a board needs to be rebuilt or
-  replicated for a new sprint, all that structure has to be recreated from scratch.
-
-key_outcomes:
-  - "10 fully-specified Sprint 0 cards provisioned in a single command"
-  - "Every card ships with execution checklists, acceptance tests, Definition of Done, and dev notes"
-  - "Dependency chain encoded in card titles ([S0-00] through [S0-09]) and descriptions"
-  - "8 workflow lists including Instructions, In Progress, Review/Playtest, and Blocked"
-  - "Idempotent design — safe to re-run without creating duplicates"
-  - "4 instruction cards providing board overview, card lifecycle, Trello tips, and dependency map"
-
-tech_stack:
-  - "Node.js"
-  - "axios"
-  - "dotenv"
-  - "Trello REST API"
-  - "Vercel"
-
-complexity: "Production"
 ---
 
 ## Overview
