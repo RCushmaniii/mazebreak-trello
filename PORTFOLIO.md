@@ -55,6 +55,8 @@ tags:
   - "trello"
   - "game-development"
   - "api-integration"
+problem_solved: |
+  Game development teams lose days of productivity to manual sprint board setup — and the boards they build by hand are inconsistent, fragile, and impossible to replicate. Cards get created without checklists, acceptance criteria, or quality gates, so "done" becomes subjective and bugs leak into later sprints. Dependency chains between tasks exist only as tribal knowledge, leaving new team members guessing at execution order. When a board needs to be rebuilt for the next sprint or a new project, all of that structure has to be painstakingly recreated from memory.
 ---
 
 ## Overview
