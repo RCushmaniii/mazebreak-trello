@@ -36,12 +36,13 @@ slides:
   - src: "/images/mazebreak-trello04.jpg"
     alt_en: "MazeBreak Trello Board Automation slide 5"
     alt_es: "MazeBreak Trello Board Automation diapositiva 5"
-  - src: "/images/mazebreak-trello05.jpg"
+  - src: "/images/mazebreak-trello05.png"
     alt_en: "MazeBreak Trello Board Automation slide 6"
     alt_es: "MazeBreak Trello Board Automation diapositiva 6"
 
 # === MEDIA: VIDEO ===
 video_url: "/video/MazeBreak__Sprint_as_Code.mp4"
+video_poster: "/images/mazebreak-trello-poster.jpg"
 
 # === LINKS ===
 demo_url: "https://mazebreak-trello.vercel.app/#demo"
