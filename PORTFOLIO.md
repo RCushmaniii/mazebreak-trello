@@ -58,6 +58,23 @@ tags:
   - "api-integration"
 problem_solved: |
   Game development teams lose days of productivity to manual sprint board setup — and the boards they build by hand are inconsistent, fragile, and impossible to replicate. Cards get created without checklists, acceptance criteria, or quality gates, so "done" becomes subjective and bugs leak into later sprints. Dependency chains between tasks exist only as tribal knowledge, leaving new team members guessing at execution order. When a board needs to be rebuilt for the next sprint or a new project, all of that structure has to be painstakingly recreated from memory.
+
+# === REPO HEALTH STATUS ===
+# Last audited: 2026-04-04
+# Standards defined in: operating-system/delivery/repo-health-baseline.md
+health_status:
+  sentry: "-"
+  testing: "-"
+  ci_cd: "Y"
+  health_endpoint: "n/a"
+  security_headers: "-"
+  rate_limiting: "n/a"
+  env_validation: "n/a"
+  analytics: "DEFERRED"
+  structured_logging: "-"
+  dependabot: "Y"
+  secret_scanning: "Y"
+  db_backup: "-"
 ---
 
 ## Overview
