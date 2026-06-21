@@ -58,6 +58,13 @@ tags:
   - "api-integration"
 problem_solved: |
   Game development teams lose days of productivity to manual sprint board setup — and the boards they build by hand are inconsistent, fragile, and impossible to replicate. Cards get created without checklists, acceptance criteria, or quality gates, so "done" becomes subjective and bugs leak into later sprints. Dependency chains between tasks exist only as tribal knowledge, leaving new team members guessing at execution order. When a board needs to be rebuilt for the next sprint or a new project, all of that structure has to be painstakingly recreated from memory.
+solution: |
+  A single Node.js script provisions an entire sprint board through the Trello REST API, creating the workspace, board, workflow lists, color-coded labels, and ten fully-specified cards in one run. Each card ships with ordered execution checklists, acceptance tests, a global Definition of Done, and dependency prefixes that encode execution order directly into the structure. Every resource uses a find-or-create pattern, so the script is idempotent — running it twice produces the same board with no duplicates or errors. Cards are defined as a declarative data spec separated from the API logic, so adding work means adding an object rather than writing new API calls.
+metrics:
+  - "Provisions a complete Sprint 0 board from zero in under 30 seconds"
+  - "Idempotent by design — safe to re-run as a baseline reset with no duplicates"
+  - "Every card auto-generated with a 9-item Definition of Done quality gate"
+  - "Encoded dependency chains replace tribal knowledge with enforced execution order"
 
 # === REPO HEALTH STATUS ===
 # Last audited: 2026-04-05
@@ -70,19 +77,6 @@ health_status:
   security_headers: "Y"
   rate_limiting: "n/a"
   env_validation: "-"
-  analytics: "DEFERRED"
-  structured_logging: "-"
-  dependabot: "Y"
-  secret_scanning: "Y"
-  db_backup: "-"
-health_status:
-  sentry: "-"
-  testing: "-"
-  ci_cd: "Y"
-  health_endpoint: "n/a"
-  security_headers: "-"
-  rate_limiting: "n/a"
-  env_validation: "n/a"
   analytics: "DEFERRED"
   structured_logging: "-"
   dependabot: "Y"
